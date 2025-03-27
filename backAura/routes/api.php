@@ -22,3 +22,9 @@ Route::get('portfolios/{portfolio}/apis', [PortfolioController::class, 'apis']);
 Route::apiResource('projects', ProjectController::class);
 Route::get('projects/category/{category}', [ProjectController::class, 'filterByCategory']);
 Route::get('projects/technology/{skill}', [ProjectController::class, 'filterByTechnology']);
+
+
+Route::apiResource('skills', SkillController::class);
+Route::post('skills/{skill}/attach', [SkillController::class, 'attachToProject']);
+Route::post('skills/{skill}/detach', [SkillController::class, 'detachFromProject']);
+Route::get('skills/{skill}/projects', [SkillController::class, 'projects']);
