@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SkillController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\AchievementController;
 
 // A U T H
 Route::post('/login', [AuthController::class, 'login']);
@@ -27,3 +28,5 @@ Route::apiResource('skills', SkillController::class);
 Route::post('skills/{skill}/attach', [SkillController::class, 'attachToProject']);
 Route::post('skills/{skill}/detach', [SkillController::class, 'detachFromProject']);
 Route::get('skills/{skill}/projects', [SkillController::class, 'projects']);
+// A C H I E V E M E N T S
+Route::apiResource('achievements', AchievementController::class);
