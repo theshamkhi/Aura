@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('photo');
-            $table->string('role');
+            $table->string('photo')->nullable();
+            $table->string('job');
             $table->text('bio')->nullable();
             $table->string('cv')->nullable();
             $table->string('country')->nullable();

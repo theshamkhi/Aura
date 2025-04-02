@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('apis', function (Blueprint $table) {
             $table->id();
-            $table->string('apiName');
-            $table->string('apiKey');
+            $table->string('name');
+            $table->string('key')->unique();
+            $table->text('description')->nullable();
             $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
             $table->timestamps();
         });

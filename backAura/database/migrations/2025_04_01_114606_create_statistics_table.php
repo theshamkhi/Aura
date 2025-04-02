@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create('statistics', function (Blueprint $table) {
             $table->id();
-            $table->integer('totalVisitors');
-            $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
+            $table->integer('total_visitors')->default(0);
+            $table->integer('unique_visitors')->default(0);
+            $table->json('most_viewed_projects')->nullable();
+            $table->json('visitor_locations')->nullable();
+            $table->foreignId('portfolio_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+            
+            $table->unique('portfolio_id');
         });
     }
 

@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug')->unique();
             $table->text('description');
             $table->string('image')->nullable();
             $table->string('category');
             $table->date('date');
-            $table->string('sourceCodeLink')->nullable();
-            $table->string('liveSiteLink')->nullable();
+            $table->string('source_code_url')->nullable();
+            $table->string('live_site_url')->nullable();
+            $table->integer('view_count')->default(0);
             $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
             $table->timestamps();
         });
