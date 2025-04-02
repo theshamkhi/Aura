@@ -7,10 +7,16 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\AchievementController;
+use App\Http\Controllers\StatisticController;
+
 
 // A U T H
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+});
 // P O R T F O L I O
 Route::apiResource('portfolios', PortfolioController::class);
 Route::get('portfolios/{portfolio}/owner', [PortfolioController::class, 'owner']);
@@ -30,3 +36,10 @@ Route::post('skills/{skill}/detach', [SkillController::class, 'detachFromProject
 Route::get('skills/{skill}/projects', [SkillController::class, 'projects']);
 // A C H I E V E M E N T S
 Route::apiResource('achievements', AchievementController::class);
+// S T A T I S T I C S
+Route::post('statistics/track-visit', [StatisticController::class, 'trackVisit']);
+Route::post('statistics/track-view', [StatisticController::class, 'trackProjectView']);
+Route::get('portfolios/{portfolio}/statistics', [StatisticController::class, 'show']);
+Route::get('portfolios/{portfolio}/statistics/trends', [StatisticController::class, 'visitorTrends']);
+Route::get('portfolios/{portfolio}/statistics/top-projects', [StatisticController::class, 'topProjects']);
+Route::post('portfolios/{portfolio}/statistics/reset', [StatisticController::class, 'reset']);
