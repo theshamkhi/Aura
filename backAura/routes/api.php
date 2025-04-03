@@ -29,6 +29,7 @@ Route::get('portfolios/{portfolio}/apis', [PortfolioController::class, 'apis']);
 Route::apiResource('projects', ProjectController::class);
 Route::get('projects/category/{category}', [ProjectController::class, 'filterByCategory']);
 Route::get('projects/technology/{skill}', [ProjectController::class, 'filterByTechnology']);
+Route::post('projects/{project}/views', [ProjectController::class, 'incrementViews']);
 // S K I L L S
 Route::apiResource('skills', SkillController::class);
 Route::post('skills/{skill}/attach', [SkillController::class, 'attachToProject']);
