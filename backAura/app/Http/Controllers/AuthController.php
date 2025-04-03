@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -67,44 +65,47 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $user = $request->user();
-
+        
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
+            'email' => 'sometimes|email|max:255|unique:users,email,'.$user->id,
             'job' => 'sometimes|string|max:255',
             'bio' => 'nullable|string',
-            'country' => 'nullable|string|max:255',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'cv' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-            'password' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->numbers()]
+            'country' => 'nullable|string|max:100',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-
-        $data = $request->except(['photo', 'cv', 'password']);
-
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        foreach (['photo', 'cv'] as $fileField) {
-            if ($request->hasFile($fileField)) {
-                $path = $request->file($fileField)->store($fileField.'s', 'public');
-                $data[$fileField] = $path;
-                
-                if ($user->$fileField) {
-                    Storage::disk('public')->delete($user->$fileField);
-                }
+    
+        $data = $request->except(['photo', 'cv']);
+    
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('user/photo', 'public');
+            $data['photo'] = $path;
+            
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
             }
         }
-
+    
+        if ($request->hasFile('cv')) {
+            $path = $request->file('cv')->store('user/cv', 'public');
+            $data['cv'] = $path;
+            
+            if ($user->cv) {
+                Storage::disk('public')->delete($user->cv);
+            }
+        }
+    
         $user->update($data);
-
+    
         return response()->json([
             'message' => 'Profile updated successfully',
             'user' => $user->fresh()
         ]);
     }
+
 }
