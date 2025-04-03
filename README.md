@@ -1,4 +1,4 @@
-# Aura - Dynamic Portfolio Management System 🚀
+# Aura
 
 A self-hosted portfolio platform for developers to **showcase their work** and **manage content dynamically**. Built with a decoupled architecture (Laravel API + React frontend), Aura empowers you to curate a professional online presence while retaining full ownership of your data.
 
@@ -38,7 +38,6 @@ A self-hosted portfolio platform for developers to **showcase their work** and *
 - Tailwind CSS
 
 **Extras**  
-- Visitor session tracking  
-- File uploads (S3/local storage)  
-- Cron jobs for analytics  
+- Visitor session tracking
 - Swagger API documentation
+- ...
