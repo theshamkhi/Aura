@@ -7,12 +7,13 @@ use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
     /**
      * Display a listing of projects.
-    */
+     */
     public function index()
     {
         $projects = Project::with('skills')->latest()->get();
@@ -23,26 +24,18 @@ class ProjectController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-    */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created project.
-    */
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'category' => 'required|string|max:255',
             'date' => 'required|date',
-            'sourceCodeLink' => 'nullable|url',
-            'liveSiteLink' => 'nullable|url',
+            'source_code_url' => 'nullable|url',
+            'live_site_url' => 'nullable|url',
             'skills' => 'nullable|array',
             'skills.*' => 'exists:skills,id',
             'portfolio_id' => 'required|exists:portfolios,id'
@@ -56,6 +49,8 @@ class ProjectController extends Controller
         }
 
         $data = $request->except('image', 'skills');
+        $data['slug'] = Str::slug($request->title);
+        // $data['portfolio_id'] = 1;
         
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('projects', 'public');
@@ -64,7 +59,6 @@ class ProjectController extends Controller
 
         $project = Project::create($data);
 
-        // Attach skills if provided
         if ($request->has('skills')) {
             $project->skills()->attach($request->skills);
         }
@@ -77,7 +71,7 @@ class ProjectController extends Controller
 
     /**
      * Display the specified project.
-    */
+     */
     public function show(Project $project)
     {
         return response()->json([
@@ -87,26 +81,18 @@ class ProjectController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-    */
-    public function edit(Project $project)
-    {
-        //
-    }
-
-    /**
      * Update the specified project.
-    */
+     */
     public function update(Request $request, Project $project)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'category' => 'sometimes|string|max:255',
             'date' => 'sometimes|date',
-            'sourceCodeLink' => 'nullable|url',
-            'liveSiteLink' => 'nullable|url',
+            'source_code_url' => 'nullable|url',
+            'live_site_url' => 'nullable|url',
             'skills' => 'nullable|array',
             'skills.*' => 'exists:skills,id'
         ]);
@@ -120,6 +106,10 @@ class ProjectController extends Controller
 
         $data = $request->except('image', 'skills');
         
+        if ($request->has('title')) {
+            $data['slug'] = Str::slug($request->title);
+        }
+
         if ($request->hasFile('image')) {
 
             if ($project->image) {
@@ -144,16 +134,14 @@ class ProjectController extends Controller
 
     /**
      * Remove the specified project.
-    */
+     */
     public function destroy(Project $project)
     {
-        // Delete associated image if exists
         if ($project->image) {
             Storage::disk('public')->delete($project->image);
         }
 
         $project->skills()->detach();
-        
         $project->delete();
 
         return response()->json([
@@ -164,7 +152,7 @@ class ProjectController extends Controller
 
     /**
      * Filter projects by category
-    */
+     */
     public function filterByCategory($category)
     {
         $projects = Project::with('skills')
@@ -179,7 +167,7 @@ class ProjectController extends Controller
 
     /**
      * Filter projects by technology (skill)
-    */
+     */
     public function filterByTechnology(Skill $skill)
     {
         $projects = $skill->projects()->with('skills')->get();
@@ -187,6 +175,19 @@ class ProjectController extends Controller
         return response()->json([
             'status' => 'success',
             'projects' => $projects
+        ]);
+    }
+
+    /**
+     * Increment project view count
+     */
+    public function incrementViews(Project $project)
+    {
+        $project->increment('view_count');
+        
+        return response()->json([
+            'status' => 'success',
+            'view_count' => $project->view_count
         ]);
     }
 }
