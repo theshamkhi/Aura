@@ -15,7 +15,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
 });
 // P O R T F O L I O
 Route::apiResource('portfolios', PortfolioController::class);
