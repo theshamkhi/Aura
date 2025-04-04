@@ -15,16 +15,12 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/profile', [AuthController::class, 'updateProfile']);
 });
 // P O R T F O L I O
-Route::apiResource('portfolios', PortfolioController::class);
-Route::get('portfolios/{portfolio}/owner', [PortfolioController::class, 'owner']);
-Route::get('portfolios/{portfolio}/projects', [PortfolioController::class, 'projects']);
-Route::get('portfolios/{portfolio}/skills', [PortfolioController::class, 'skills']);
-Route::get('portfolios/{portfolio}/achievements', [PortfolioController::class, 'achievements']);
-Route::get('portfolios/{portfolio}/statistics', [PortfolioController::class, 'statistics']);
-Route::get('portfolios/{portfolio}/apis', [PortfolioController::class, 'apis']);
+Route::get('/portfolio', [PortfolioController::class, 'show']);
+Route::put('/portfolio', [PortfolioController::class, 'update']);
+Route::get('/portfolio/owner', [PortfolioController::class, 'owner']);
+Route::post('/portfolio/owner', [PortfolioController::class, 'updateOwner']);
 // P R O J E C T S
 Route::apiResource('projects', ProjectController::class);
 Route::get('projects/category/{category}', [ProjectController::class, 'filterByCategory']);
