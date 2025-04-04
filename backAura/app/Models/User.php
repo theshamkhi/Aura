@@ -54,9 +54,4 @@ class User extends Authenticatable
     {
         return $this->hasOne(Portfolio::class, 'owner_id');
     }
-
-    public function messages()
-    {
-        return $this->hasMany(Message::class, 'owner_id');
-    }
 }
