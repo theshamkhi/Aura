@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('visitors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
+            $table->foreignId('portfolio_id')->constrained()->onDelete('cascade');
             $table->string('ip_address')->nullable();
             $table->string('user_agent')->nullable();
             $table->string('referrer')->nullable();
-            $table->string('email')->nullable();
+            $table->string('country', 100)->nullable();
+            $table->string('city', 100)->nullable();
             $table->string('session_id')->unique();
             $table->timestamps();
             
-            $table->index(['portfolio_id', 'created_at']);
+            $table->index(['portfolio_id', 'session_id']);
         });
     }
 

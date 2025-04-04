@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('sender_name');
             $table->string('sender_email');
             $table->text('message');
-            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('portfolio_id')->constrained()->onDelete('cascade');
+            $table->foreignId('visitor_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

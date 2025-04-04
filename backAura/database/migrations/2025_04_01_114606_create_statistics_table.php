@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->integer('total_visitors')->default(0);
             $table->integer('unique_visitors')->default(0);
-            $table->json('most_viewed_projects')->nullable();
-            $table->json('visitor_locations')->nullable();
             $table->foreignId('portfolio_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             
