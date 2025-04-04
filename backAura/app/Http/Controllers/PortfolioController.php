@@ -5,28 +5,28 @@ namespace App\Http\Controllers;
 use App\Models\Portfolio;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class PortfolioController extends Controller
 {
     /**
-     * Display the single portfolio with all relationships.
+     * Display the authenticated user's portfolio
      */
     public function show()
     {
-        $portfolio = Portfolio::firstOrFail()->load([
-            'owner', 
-            'projects', 
-            'skills', 
-            'achievements', 
+        $portfolio = Auth::user()->portfolio->load([
+            'owner',
+            'projects.technologies',
+            'skills',
+            'achievements',
             'statistics',
             'apis',
             'messages',
             'visitors'
         ]);
-
+    
         return response()->json([
             'status' => 'success',
             'portfolio' => $portfolio
@@ -34,16 +34,15 @@ class PortfolioController extends Controller
     }
 
     /**
-     * Update the single portfolio.
+     * Update the authenticated user's portfolio
      */
     public function update(Request $request)
     {
-        $portfolio = Portfolio::firstOrFail();
+        $portfolio = Auth::user()->portfolio;
 
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'slug' => 'sometimes|string|max:255|unique:portfolios,slug,'.$portfolio->id
         ]);
 
         if ($validator->fails()) {
@@ -61,7 +60,7 @@ class PortfolioController extends Controller
                 Storage::disk('public')->delete($portfolio->image);
             }
             
-            $path = $request->file('image')->store('portfolios', 'public');
+            $path = $request->file('image')->store('portfolio', 'public');
             $data['image'] = $path;
         }
 
@@ -74,24 +73,22 @@ class PortfolioController extends Controller
     }
 
     /**
-     * Get the owner's details for the portfolio
+     * Get the portfolio owner's details
      */
     public function owner()
     {
-        $portfolio = Portfolio::with('owner')->firstOrFail();
-        
         return response()->json([
             'status' => 'success',
-            'owner' => $portfolio->owner
+            'owner' => Auth::user()->portfolio->owner
         ]);
     }
 
     /**
-     * Update the owner's details
+     * Update the portfolio owner's details
      */
     public function updateOwner(Request $request)
     {
-        $portfolio = Portfolio::with('owner')->firstOrFail();
+        $portfolio = Auth::user()->portfolio;
         $owner = $portfolio->owner;
 
         $validator = Validator::make($request->all(), [
@@ -117,14 +114,14 @@ class PortfolioController extends Controller
             if ($owner->photo) {
                 Storage::disk('public')->delete($owner->photo);
             }
-            $data['photo'] = $request->file('photo')->store('user/photo', 'public');
+            $data['photo'] = $request->file('photo')->store('owner/photo', 'public');
         }
 
         if ($request->hasFile('cv')) {
             if ($owner->cv) {
                 Storage::disk('public')->delete($owner->cv);
             }
-            $data['cv'] = $request->file('cv')->store('user/cv', 'public');
+            $data['cv'] = $request->file('cv')->store('owner/cv', 'public');
         }
 
         $owner->update($data);
@@ -132,6 +129,25 @@ class PortfolioController extends Controller
         return response()->json([
             'status' => 'success',
             'owner' => $owner->fresh()
+        ]);
+    }
+
+    /**
+     * Delete the authenticated user's portfolio
+     */
+    public function destroy()
+    {
+        $portfolio = Auth::user()->portfolio;
+
+        if ($portfolio->image) {
+            Storage::disk('public')->delete($portfolio->image);
+        }
+
+        $portfolio->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Portfolio deleted successfully'
         ]);
     }
 }
