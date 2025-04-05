@@ -3,35 +3,71 @@
 namespace App\Http\Controllers;
 
 use App\Models\Portfolio;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
 
 class PortfolioController extends Controller
 {
     /**
-     * Display the authenticated user's portfolio
+     * Public endpoint: Get portfolio details with statistics
      */
-    public function show()
+    public function show(Portfolio $portfolio)
     {
-        $portfolio = Auth::user()->portfolio->load([
-            'owner',
-            'projects.technologies',
-            'skills',
-            'achievements',
-            'statistics',
-            'apis',
-            'messages',
-            'visitors'
-        ]);
-    
+        $portfolio->load('owner');
+        
         return response()->json([
-            'status' => 'success',
-            'portfolio' => $portfolio
+            'portfolio' => [
+                'title' => $portfolio->title,
+                'image' => $portfolio->image,
+                'owner' => [
+                    'name' => $portfolio->owner->name,
+                    'job' => $portfolio->owner->job,
+                    'bio' => $portfolio->owner->bio,
+                    'photo' => $portfolio->owner->photo,
+                    'country' => $portfolio->owner->country
+                ],
+                'stats' => $this->getPortfolioStats($portfolio)
+            ]
         ]);
     }
+
+    /**
+     * Calculate comprehensive portfolio statistics
+     */
+    private function getPortfolioStats(Portfolio $portfolio)
+    {
+        return [
+            'projects' => $portfolio->projects()->count(),
+            'skills' => $portfolio->skills()->count(),
+            'achievements' => $portfolio->achievements()->count(),
+            'visitors' => [
+                'total' => $portfolio->visitors()->count(),
+                'unique' => $portfolio->visitors()->distinct('session_id')->count(),
+                'last_7_days' => $portfolio->visitors()
+                    ->where('created_at', '>=', Carbon::now()->subDays(7))
+                    ->count()
+            ],
+            'engagement' => [
+                'total_views' => $portfolio->projects()->withCount('views')->get()->sum('views_count'),
+                'average_views' => $portfolio->projects()->avg('view_count'),
+                'popular_projects' => $portfolio->projects()
+                    ->withCount('views')
+                    ->orderByDesc('views_count')
+                    ->take(3)
+                    ->get()
+                    ->map(fn($project) => [
+                        'title' => $project->title,
+                        'views' => $project->views_count,
+                        'image' => $project->image
+                    ])
+            ],
+            'messages' => $portfolio->messages()->count()
+        ];
+    }
+
 
     /**
      * Update the authenticated user's portfolio
@@ -69,17 +105,6 @@ class PortfolioController extends Controller
         return response()->json([
             'status' => 'success',
             'portfolio' => $portfolio->fresh()
-        ]);
-    }
-
-    /**
-     * Get the portfolio owner's details
-     */
-    public function owner()
-    {
-        return response()->json([
-            'status' => 'success',
-            'owner' => Auth::user()->portfolio->owner
         ]);
     }
 
