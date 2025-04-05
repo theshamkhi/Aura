@@ -25,10 +25,6 @@ class Portfolio extends Model
         return $this->hasMany(Message::class);
     }
 
-    public function statistics() {
-        return $this->hasOne(Statistic::class);
-    }
-
     public function achievements() {
         return $this->hasMany(Achievement::class);
     }
