@@ -24,17 +24,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/portfolio/owner', [PortfolioController::class, 'updateOwner']);
     Route::delete('/portfolio', [PortfolioController::class, 'destroy']);
 });
-// // P R O J E C T S
-// Route::get('/portfolio/{portfolio}/projects', [ProjectController::class, 'index']);
-// Route::get('/portfolio/{portfolio}/projects/{project}', [ProjectController::class, 'show']);
-// Route::get('/portfolio/{portfolio}/projects/category/{category}', [ProjectController::class, 'filterByCategory']);
-// Route::get('/portfolio/{portfolio}/projects/technology/{skill}', [ProjectController::class, 'filterByTechnology']);
-// Route::post('/portfolio/{portfolio}/projects/{project}/views', [ProjectController::class, 'trackView']);
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::post('/projects', [ProjectController::class, 'store']);
-//     Route::put('/projects/{project}', [ProjectController::class, 'update']);
-//     Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
-// });
+// P R O J E C T S  &  V I E W S
+Route::get('/portfolio/{portfolio}/projects', [ProjectController::class, 'index']);
+Route::get('/portfolio/{portfolio}/projects/{project}', [ProjectController::class, 'show']);
+Route::get('/portfolio/{portfolio}/projects/technology/{skill}', [ProjectController::class, 'filterByTechnology']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/projects', [ProjectController::class, 'store']);
+    Route::put('/projects/{project}', [ProjectController::class, 'update']);
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
+});
+Route::post('/projects/{project}/views', [ProjectViewController::class, 'trackView']);
+Route::get('/projects/{project}/stats', [ProjectViewController::class, 'projectStats']);
 // // S K I L L S
 // Route::apiResource('skills', SkillController::class);
 // Route::post('skills/{skill}/attach', [SkillController::class, 'attachToProject']);
