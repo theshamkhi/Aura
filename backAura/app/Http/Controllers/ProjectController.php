@@ -3,191 +3,139 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Portfolio;
 use App\Models\Skill;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
     /**
-     * Display a listing of projects.
+     * Display all projects of a certain Portfolio
      */
-    public function index()
+    public function index(Portfolio $portfolio)
     {
-        $projects = Project::with('skills')->latest()->get();
         return response()->json([
-            'status' => 'success',
-            'projects' => $projects
+            'projects' => $portfolio->projects()
+                ->with('technologies')
+                ->latest()
+                ->get()
         ]);
     }
 
     /**
-     * Store a newly created project.
+     * Display certain project of a certain Portfolio
+     */
+    public function show(Portfolio $portfolio, Project $project)
+    {
+        if ($project->portfolio_id !== $portfolio->id) {
+            abort(404, 'Project not found in this portfolio');
+        }
+
+        return response()->json([
+            'project' => $project->load('technologies')
+        ]);
+    }
+    
+    /**
+     * Filter Projects by Technology
+     */
+    public function filterByTechnology(Portfolio $portfolio, Skill $skill)
+    {
+        if ($skill->portfolio_id !== $portfolio->id) {
+            abort(404, 'Skill not found in this portfolio');
+        }
+
+        return response()->json([
+            'projects' => $skill->projects()->with('technologies')->get()
+        ]);
+    }
+
+    /**
+     * Stor newly created Project
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $portfolio = Auth::user()->portfolio;
+
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|string',
             'category' => 'required|string|max:255',
             'date' => 'required|date',
             'source_code_url' => 'nullable|url',
             'live_site_url' => 'nullable|url',
             'skills' => 'nullable|array',
-            'skills.*' => 'exists:skills,id',
-            'portfolio_id' => 'required|exists:portfolios,id'
+            'skills.*' => [
+                Rule::exists('skills', 'id')->where('portfolio_id', $portfolio->id)
+            ]
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $data = $request->except('image', 'skills');
-        $data['slug'] = Str::slug($request->title);
-        // $data['portfolio_id'] = 1;
-        
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('projects', 'public');
-            $data['image'] = $path;
-        }
+        $data = $request->except('skills');
+        $data['portfolio_id'] = $portfolio->id;
 
         $project = Project::create($data);
 
         if ($request->has('skills')) {
-            $project->skills()->attach($request->skills);
+            $project->technologies()->sync($validated['skills']);
         }
 
         return response()->json([
             'status' => 'success',
-            'project' => $project->load('skills')
+            'project' => $project->load('technologies')
         ], 201);
     }
 
     /**
-     * Display the specified project.
-     */
-    public function show(Project $project)
-    {
-        return response()->json([
-            'status' => 'success',
-            'project' => $project->load('skills')
-        ]);
-    }
-
-    /**
-     * Update the specified project.
+     * Update existing Project
      */
     public function update(Request $request, Project $project)
     {
-        $validator = Validator::make($request->all(), [
+        $portfolioId = Auth::user()->portfolio->id;
+
+        $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|string',
             'category' => 'sometimes|string|max:255',
             'date' => 'sometimes|date',
             'source_code_url' => 'nullable|url',
             'live_site_url' => 'nullable|url',
             'skills' => 'nullable|array',
-            'skills.*' => 'exists:skills,id'
+            'skills.*' => [
+                Rule::exists('skills', 'id')->where('portfolio_id', $portfolioId)
+            ]
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $data = $request->except('image', 'skills');
-        
-        if ($request->has('title')) {
-            $data['slug'] = Str::slug($request->title);
-        }
-
-        if ($request->hasFile('image')) {
-
-            if ($project->image) {
-                Storage::disk('public')->delete($project->image);
-            }
-            
-            $path = $request->file('image')->store('projects', 'public');
-            $data['image'] = $path;
-        }
+        $data = $request->except('skills');
 
         $project->update($data);
 
         if ($request->has('skills')) {
-            $project->skills()->sync($request->skills);
+            $project->technologies()->sync($validated['skills']);
         }
 
         return response()->json([
             'status' => 'success',
-            'project' => $project->fresh()->load('skills')
+            'project' => $project->fresh()->load('technologies')
         ]);
     }
 
     /**
-     * Remove the specified project.
+     * Delete certain Project
      */
     public function destroy(Project $project)
     {
-        if ($project->image) {
-            Storage::disk('public')->delete($project->image);
+        if ($project->portfolio_id !== Auth::user()->portfolio->id) {
+            abort(403, 'Unauthorized action');
         }
-
-        $project->skills()->detach();
+        
+        Storage::disk('public')->delete($project->image);
         $project->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Project deleted successfully'
-        ]);
-    }
-
-    /**
-     * Filter projects by category
-     */
-    public function filterByCategory($category)
-    {
-        $projects = Project::with('skills')
-            ->where('category', $category)
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'projects' => $projects
-        ]);
-    }
-
-    /**
-     * Filter projects by technology (skill)
-     */
-    public function filterByTechnology(Skill $skill)
-    {
-        $projects = $skill->projects()->with('skills')->get();
-
-        return response()->json([
-            'status' => 'success',
-            'projects' => $projects
-        ]);
-    }
-
-    /**
-     * Increment project view count
-     */
-    public function incrementViews(Project $project)
-    {
-        $project->increment('view_count');
-        
-        return response()->json([
-            'status' => 'success',
-            'view_count' => $project->view_count
-        ]);
+        return response()->json(['message' => 'Project deleted successfully']);
     }
 }
