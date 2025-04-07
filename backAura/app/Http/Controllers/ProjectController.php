@@ -7,7 +7,6 @@ use App\Models\Portfolio;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
@@ -63,7 +62,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|string',
+            'image_url' => 'nullable|url|string',
             'category' => 'required|string|max:255',
             'date' => 'required|date',
             'source_code_url' => 'nullable|url',
@@ -94,19 +93,23 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        $portfolioId = Auth::user()->portfolio->id;
+        $portfolioID = Auth::user()->portfolio->id;
+
+        if ($project->portfolio_id !== $portfolioID) {
+            abort(403, 'Unauthorized action');
+        }
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
-            'image' => 'nullable|string',
+            'image_url' => 'nullable|url|string',
             'category' => 'sometimes|string|max:255',
             'date' => 'sometimes|date',
             'source_code_url' => 'nullable|url',
             'live_site_url' => 'nullable|url',
             'skills' => 'nullable|array',
             'skills.*' => [
-                Rule::exists('skills', 'id')->where('portfolio_id', $portfolioId)
+                Rule::exists('skills', 'id')->where('portfolio_id', $portfolioID)
             ]
         ]);
 
@@ -115,7 +118,7 @@ class ProjectController extends Controller
         $project->update($data);
 
         if ($request->has('skills')) {
-            $project->technologies()->sync($validated['skills']);
+            $project->technologies()->syncWithoutDetaching($validated['skills']);
         }
 
         return response()->json([
@@ -133,7 +136,6 @@ class ProjectController extends Controller
             abort(403, 'Unauthorized action');
         }
         
-        Storage::disk('public')->delete($project->image);
         $project->delete();
 
         return response()->json(['message' => 'Project deleted successfully']);
