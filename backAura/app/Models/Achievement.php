@@ -6,10 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Achievement extends Model
 {
-    protected $fillable = ['title', 'description', 'image', 'date', 'portfolio_id'];
+    protected $fillable = ['title', 'description', 'image_url', 'portfolio_id'];
 
-    public function portfolio()
+    protected function casts(): array
     {
+        return [
+            'date' => 'date',
+        ];
+    }
+
+    public function portfolio() {
         return $this->belongsTo(Portfolio::class);
     }
 }

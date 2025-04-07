@@ -8,13 +8,11 @@ class Skill extends Model
 {
     protected $fillable = ['name', 'icon', 'portfolio_id'];
 
-    public function portfolio()
-    {
-        return $this->belongsTo(Portfolio::class);
-    }
-
-    public function projects()
-    {
+    public function projects() {
         return $this->belongsToMany(Project::class, 'project_technologies');
+    }
+    
+    public function portfolio() {
+        return $this->belongsTo(Portfolio::class);
     }
 }

@@ -6,5 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Visitor extends Model
 {
-    protected $fillable = ['email', 'sessionId'];
+    protected $fillable = [
+        'ip_address', 'user_agent', 'referrer', 'country', 
+        'city', 'session_id', 'portfolio_id'
+    ];
+
+    public function messages() {
+        return $this->hasMany(Message::class);
+    }
+
+    public function views() {
+        return $this->hasMany(ProjectView::class);
+    }
 }
