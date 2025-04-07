@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('portfolio_id')->constrained()->onDelete('cascade');
             $table->string('ip_address')->nullable();
-            $table->string('user_agent')->nullable();
-            $table->string('referrer')->nullable();
+            $table->text('user_agent')->nullable();
+            $table->text('referrer')->nullable();
             $table->string('country', 100)->nullable();
             $table->string('city', 100)->nullable();
             $table->string('session_id')->unique();
