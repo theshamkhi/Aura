@@ -51,8 +51,8 @@ class PortfolioController extends Controller
                     ->count()
             ],
             'engagement' => [
-                'total_views' => $portfolio->projects()->withCount('views')->get()->sum('views_count'),
-                'average_views' => $portfolio->projects()->avg('view_count'),
+                'total_views' => $portfolio->projects()->sum('views_count'),
+                'average_views' => $portfolio->projects()->avg('views_count'),
                 'popular_projects' => $portfolio->projects()
                     ->withCount('views')
                     ->orderByDesc('views_count')
@@ -61,7 +61,7 @@ class PortfolioController extends Controller
                     ->map(fn($project) => [
                         'title' => $project->title,
                         'views' => $project->views_count,
-                        'image' => $project->image
+                        'image' => $project->image_url
                     ])
             ],
             'messages' => $portfolio->messages()->count()
