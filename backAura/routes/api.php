@@ -35,13 +35,17 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::post('/projects/{project}/views', [ProjectViewController::class, 'trackView']);
 Route::get('/projects/{project}/stats', [ProjectViewController::class, 'projectStats']);
-// // S K I L L S
-// Route::apiResource('skills', SkillController::class);
-// Route::post('skills/{skill}/attach', [SkillController::class, 'attachToProject']);
-// Route::post('skills/{skill}/detach', [SkillController::class, 'detachFromProject']);
-// Route::get('skills/{skill}/projects', [SkillController::class, 'projects']);
-// // A C H I E V E M E N T S
-// Route::apiResource('achievements', AchievementController::class);
+// S K I L L S
+Route::get('/portfolios/{portfolio}/skills', [SkillController::class, 'index']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/skills', [SkillController::class, 'store']);
+    Route::put('/skills/{skill}', [SkillController::class, 'update']);
+    Route::post('/skills/{skill}/attach', [SkillController::class, 'attachToProject']);
+    Route::post('/skills/{skill}/detach', [SkillController::class, 'detachFromProject']);
+    Route::delete('/skills/{skill}', [SkillController::class, 'destroy']);
+});
+// A C H I E V E M E N T S
+Route::apiResource('achievements', AchievementController::class);
 // // S T A T I S T I C S
 // Route::post('statistics/track-visit', [StatisticController::class, 'trackVisit']);
 // Route::post('statistics/track-view', [StatisticController::class, 'trackProjectView']);
@@ -49,9 +53,3 @@ Route::get('/projects/{project}/stats', [ProjectViewController::class, 'projectS
 // Route::get('portfolios/{portfolio}/statistics/trends', [StatisticController::class, 'visitorTrends']);
 // Route::get('portfolios/{portfolio}/statistics/top-projects', [StatisticController::class, 'topProjects']);
 // Route::post('portfolios/{portfolio}/statistics/reset', [StatisticController::class, 'reset']);
-// // V I E W S
-// Route::post('/projects/{project}/views', [ProjectViewController::class, 'trackView']);
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::get('/projects/{project}/stats', [ProjectViewController::class, 'projectStats']);
-//     Route::get('/stats/views', [ProjectViewController::class, 'portfolioStats']);
-// });
