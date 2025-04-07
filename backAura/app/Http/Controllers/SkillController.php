@@ -3,18 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Skill;
-use App\Models\Project;
+use App\Models\Portfolio;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class SkillController extends Controller
 {
     /**
-     * Display a listing of skills.
-    */
-    public function index()
+     * Display a listing of skills for the current portfolio
+     */
+    public function index(Portfolio $portfolio)
     {
-        $skills = Skill::latest()->get();
+        $skills = $portfolio->skills()->latest()->get();
         return response()->json([
             'status' => 'success',
             'skills' => $skills
@@ -22,24 +23,22 @@ class SkillController extends Controller
     }
 
     /**
-     * Store a newly created skill.
-    */
+     * Store a newly created skill for the current portfolio
+     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:skills',
-            'icon' => 'nullable|string|max:255',
-            'portfolio_id' => 'required|exists:portfolios,id'
+        $portfolio = Auth::user()->portfolio;
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('skills')->where('portfolio_id', $portfolio->id)
+            ],
+            'icon' => 'nullable|string'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $skill = Skill::create($request->all());
+        $skill = $portfolio->skills()->create($validated);
 
         return response()->json([
             'status' => 'success',
@@ -48,36 +47,24 @@ class SkillController extends Controller
     }
 
     /**
-     * Display the specified skill.
-    */
-    public function show(Skill $skill)
-    {
-        return response()->json([
-            'status' => 'success',
-            'skill' => $skill->load('projects')
-        ]);
-    }
-
-    /**
-     * Update the specified skill.
-    */
+     * Update existing skill
+     */
     public function update(Request $request, Skill $skill)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255|unique:skills,name,'.$skill->id,
-            'icon' => 'nullable|string|max:255',
-            'portfolio_id' => 'sometimes|exists:portfolios,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
+        if ($skill->portfolio_id !== Auth::user()->portfolio->id) {
+            abort(403, 'Unauthorized action.');
         }
 
-        $skill->update($request->all());
+        $validated = $request->validate([
+            'name' => [
+                'sometimes',
+                'string',
+                Rule::unique('skills')->ignore($skill->id)->where('portfolio_id', $skill->portfolio_id)
+            ],
+            'icon' => 'nullable|string'
+        ]);
 
+        $skill->update($validated);
         return response()->json([
             'status' => 'success',
             'skill' => $skill
@@ -85,79 +72,55 @@ class SkillController extends Controller
     }
 
     /**
-     * Remove the specified skill.
-    */
-    public function destroy(Skill $skill)
+     * Attach skill to project
+     */
+    public function attachToProject(Request $request, Skill $skill)
     {
-        $skill->projects()->detach();
-        
-        $skill->delete();
+        if ($skill->portfolio_id !== Auth::user()->portfolio->id) {
+            abort(403, 'Unauthorized action.');
+        }
 
+        $validated = $request->validate([
+            'project_id' => 'required|exists:projects,id,portfolio_id,'.$skill->portfolio_id
+        ]);
+
+        $skill->projects()->syncWithoutDetaching([$validated['project_id']]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Skill attached to project'
+        ]);
+    }
+
+    /**
+     * Detach skill from project
+     */
+    public function detachFromProject(Request $request, Skill $skill)
+    {
+        if ($skill->portfolio_id !== Auth::user()->portfolio->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'project_id' => 'required|exists:projects,id,portfolio_id,'.$skill->portfolio_id
+        ]);
+
+        $skill->projects()->detach($validated['project_id']);
+        return response()->json(['status' => 'success', 'message' => 'Skill detached from project']);
+    }
+
+    /**
+     * Remove the specified skill from the current portfolio
+     */
+    public function destroy(Skill $skill)
+    {   
+        if ($skill->portfolio_id !== Auth::user()->portfolio->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $skill->delete();
         return response()->json([
             'status' => 'success',
             'message' => 'Skill deleted successfully'
-        ]);
-    }
-
-    /**
-     * Attach skill to a project
-    */
-    public function attachToProject(Request $request, Skill $skill)
-    {
-        $validator = Validator::make($request->all(), [
-            'project_id' => 'required|exists:projects,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $skill->projects()->syncWithoutDetaching([$request->project_id]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Skill attached to project successfully',
-            'project' => Project::with('skills')->find($request->project_id)
-        ]);
-    }
-
-    /**
-     * Detach skill from a project
-    */
-    public function detachFromProject(Request $request, Skill $skill)
-    {
-        $validator = Validator::make($request->all(), [
-            'project_id' => 'required|exists:projects,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $skill->projects()->detach($request->project_id);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Skill detached from project successfully'
-        ]);
-    }
-
-    /**
-     * Get all projects that use this skill
-    */
-    public function projects(Skill $skill)
-    {
-        $projects = $skill->projects()->with('skills')->get();
-
-        return response()->json([
-            'status' => 'success',
-            'projects' => $projects
         ]);
     }
 }
