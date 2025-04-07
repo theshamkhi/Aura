@@ -16,44 +16,30 @@ class ProjectViewController extends Controller
      */
     public function trackView(Request $request, Project $project)
     {
-        $validated = $request->validate([
-            'session_id' => 'required|string|min:20|max:255'
-        ]);
-
+        $validated = $request->validate(['session_id' => 'required|string|min:20|max:255']);
+    
         try {
             $geoData = $this->getGeolocation($request->ip());
-
+    
             $visitor = Visitor::firstOrCreate(
                 ['session_id' => $validated['session_id']],
-                array_merge(
-                    [
-                        'portfolio_id' => $project->portfolio_id,
-                        'ip_address' => $request->ip(),
-                        'user_agent' => substr($request->userAgent(), 0, 255),
-                        'referrer' => substr($request->header('referer'), 0, 255),
-                    ],
-                    $geoData
-                )
+                [
+                    'portfolio_id' => $project->portfolio_id,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'referrer' => $request->header('referer'),
+                    'country' => $geoData['country'],
+                    'city' => $geoData['city']
+                ]
             );
-
-            ProjectView::create([
-                'project_id' => $project->id,
-                'visitor_id' => $visitor->id
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'view_count' => $project->views()->count(),
-                'visitor' => $visitor
-            ]);
-
+    
+            ProjectView::create(['project_id' => $project->id, 'visitor_id' => $visitor->id]);
+    
+            return response()->json(['status' => 'success', 'view_count' => $project->views()->count()]);
+    
         } catch (\Exception $e) {
             Log::error('View tracking failed: ' . $e->getMessage());
-            
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Could not track view'
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => 'Could not track view'], 500);
         }
     }
 
@@ -70,10 +56,9 @@ class ProjectViewController extends Controller
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get(),
-            'top_referrers' => Visitor::whereIn('id', 
-                    $project->views()->select('visitor_id')
-                )
-                ->selectRaw('referrer, COUNT(*) as count')
+            'top_referrers' => Visitor::selectRaw('referrer, COUNT(*) as count')
+                ->join('project_views', 'visitors.id', '=', 'project_views.visitor_id')
+                ->where('project_views.project_id', $project->id)
                 ->groupBy('referrer')
                 ->orderByDesc('count')
                 ->take(5)
@@ -98,17 +83,24 @@ class ProjectViewController extends Controller
      */
     private function getGeolocation(string $ip)
     {
-        if (in_array($ip, ['127.0.0.1', '::1'])) {
-            return [
-                'country' => 'Test Country',
-                'city' => 'Test City'
-            ];
+        try {
+
+            if (in_array($ip, ['127.0.0.1', '::1'])) {
+                return [
+                    'country' => 'Test Country',
+                    'city' => 'Test City'
+                ];
+            }
+        
+            $response = Http::get('https://api.ipgeolocation.io/ipgeo', [
+                'apiKey' => config('geoip.services.ipgeolocation.key'),
+                'ip' => $ip
+            ])->json();
+
+        } catch (\Exception $e) {
+            Log::warning("Geolocation failed for IP $ip: " . $e->getMessage());
+            return ['country' => 'Unknown', 'city' => 'Unknown'];
         }
-    
-        $response = Http::get('https://api.ipgeolocation.io/ipgeo', [
-            'apiKey' => config('geoip.services.ipgeolocation.key'),
-            'ip' => $ip
-        ])->json();
     
         return [
             'country' => $response['country_name'] ?? null,
