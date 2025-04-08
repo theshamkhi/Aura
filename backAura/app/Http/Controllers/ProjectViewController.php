@@ -25,7 +25,7 @@ class ProjectViewController extends Controller
                 ['session_id' => $validated['session_id']],
                 [
                     'portfolio_id' => $project->portfolio_id,
-                    'ip_address' => $request->ip(),
+                    'ip_address' => hash('sha256', $request->ip()),
                     'user_agent' => $request->userAgent(),
                     'referrer' => $request->header('referer'),
                     'country' => $geoData['country'],
@@ -83,29 +83,24 @@ class ProjectViewController extends Controller
      */
     private function getGeolocation(string $ip)
     {
-        try {
+        if (app()->environment('local')) {
+            return ['country' => 'Test Country', 'city' => 'Test City'];
+        }
 
-            if (in_array($ip, ['127.0.0.1', '::1'])) {
-                return [
-                    'country' => 'Test Country',
-                    'city' => 'Test City'
-                ];
-            }
-        
+        try {
             $response = Http::get('https://api.ipgeolocation.io/ipgeo', [
-                'apiKey' => config('geoip.services.ipgeolocation.key'),
+                'apiKey' => config('services.ipgeolocation.key'),
                 'ip' => $ip
             ])->json();
 
+            return [
+                'country' => $response['country_name'] ?? 'Unknown',
+                'city' => $response['city'] ?? 'Unknown'
+            ];
         } catch (\Exception $e) {
             Log::warning("Geolocation failed for IP $ip: " . $e->getMessage());
             return ['country' => 'Unknown', 'city' => 'Unknown'];
         }
-    
-        return [
-            'country' => $response['country_name'] ?? null,
-            'city' => $response['city'] ?? null
-        ];
     }
 
     /**
