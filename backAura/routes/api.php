@@ -6,8 +6,8 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\AchievementController;
-use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\ProjectViewController;
+use App\Http\Controllers\VisitorController;
 
 
 // A U T H
@@ -46,10 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 // A C H I E V E M E N T S
 Route::apiResource('achievements', AchievementController::class);
+// V I S I T O R S
+Route::post('/portfolios/{portfolio}/visitors/track', [VisitorController::class, 'track']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/portfolios/{portfolio}/visitors', [VisitorController::class, 'index']);
+});
 // // S T A T I S T I C S
-// Route::post('statistics/track-visit', [StatisticController::class, 'trackVisit']);
-// Route::post('statistics/track-view', [StatisticController::class, 'trackProjectView']);
-// Route::get('portfolios/{portfolio}/statistics', [StatisticController::class, 'show']);
-// Route::get('portfolios/{portfolio}/statistics/trends', [StatisticController::class, 'visitorTrends']);
-// Route::get('portfolios/{portfolio}/statistics/top-projects', [StatisticController::class, 'topProjects']);
-// Route::post('portfolios/{portfolio}/statistics/reset', [StatisticController::class, 'reset']);
