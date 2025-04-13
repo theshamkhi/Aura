@@ -8,6 +8,7 @@ use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\ProjectViewController;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\MessageController;
 
 
 // A U T H
@@ -51,4 +52,9 @@ Route::post('/portfolios/{portfolio}/visitors/track', [VisitorController::class,
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/portfolios/{portfolio}/visitors', [VisitorController::class, 'index']);
 });
-// // S T A T I S T I C S
+// M E S S A G E S
+Route::post('/portfolios/{portfolio}/messages', [MessageController::class, 'store']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
+});
