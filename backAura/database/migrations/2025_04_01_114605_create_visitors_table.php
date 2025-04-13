@@ -21,8 +21,6 @@ return new class extends Migration
             $table->string('city', 100)->nullable();
             $table->string('session_id')->unique();
             $table->timestamps();
-            
-            $table->index(['portfolio_id', 'session_id']);
         });
     }
 
