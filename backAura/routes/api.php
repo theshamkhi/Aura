@@ -9,6 +9,7 @@ use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\ProjectViewController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\GitHubController;
 
 
 // A U T H
@@ -58,3 +59,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages', [MessageController::class, 'index']);
     Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
 });
+// G I T H U B
+Route::get('/github', [GitHubController::class, 'getStats']);
