@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 });
 // P O R T F O L I O
-Route::get('/portfolios/{portfolio}', [PortfolioController::class, 'show']);
+Route::get('/portfolio/{portfolio}', [PortfolioController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/portfolio', [PortfolioController::class, 'update']);
     Route::post('/portfolio/owner', [PortfolioController::class, 'updateOwner']);
@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/projects/{project}/views', [ProjectViewController::class, 'trackView']);
 Route::get('/projects/{project}/stats', [ProjectViewController::class, 'projectStats']);
 // S K I L L S
-Route::get('/portfolios/{portfolio}/skills', [SkillController::class, 'index']);
+Route::get('/portfolio/{portfolio}/skills', [SkillController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/skills', [SkillController::class, 'store']);
     Route::put('/skills/{skill}', [SkillController::class, 'update']);
@@ -49,12 +49,12 @@ Route::middleware('auth:sanctum')->group(function () {
 // A C H I E V E M E N T S
 Route::apiResource('achievements', AchievementController::class);
 // V I S I T O R S
-Route::post('/portfolios/{portfolio}/visitors/track', [VisitorController::class, 'track']);
+Route::post('/portfolio/{portfolio}/visitors/track', [VisitorController::class, 'track']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/portfolios/{portfolio}/visitors', [VisitorController::class, 'index']);
+    Route::get('/portfolio/{portfolio}/visitors', [VisitorController::class, 'index']);
 });
 // M E S S A G E S
-Route::post('/portfolios/{portfolio}/messages', [MessageController::class, 'store']);
+Route::post('/portfolio/{portfolio}/messages', [MessageController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages', [MessageController::class, 'index']);
     Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
