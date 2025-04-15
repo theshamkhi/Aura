@@ -29,10 +29,6 @@ class Portfolio extends Model
         return $this->hasMany(Achievement::class);
     }
 
-    public function apis() {
-        return $this->hasMany(Api::class);
-    }
-
     public function skills() {
         return $this->hasMany(Skill::class);
     }
