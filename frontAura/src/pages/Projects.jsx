@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import {
+  LibraryBooks,
+  Title,
+  Category,
+  Description,
+  CalendarToday,
+  Code,
+  Workspaces,
+  Image as ImageIcon,
+} from '@mui/icons-material';
+import {
   Box,
   Button,
   CircularProgress,
@@ -185,192 +195,341 @@ export const Projects = () => {
         />
       </Paper>
 
-      {/* Project Form Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="md">
-        <DialogTitle>{selectedProject ? 'Edit Project' : 'New Project'}</DialogTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="title"
-                  control={control}
-                  defaultValue=""
-                  rules={{ required: 'Title is required' }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Title"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.title}
-                      helperText={errors.title?.message}
-                    />
-                  )}
-                />
-              </Grid>
+    {/* Project Form Dialog */}
+    <Dialog 
+      open={openDialog} 
+      onClose={() => setOpenDialog(false)} 
+      fullWidth 
+      maxWidth="md"
+      PaperProps={{
+        sx: {
+          borderRadius: 4,
+          background: 'linear-gradient(to bottom right, #f8f9fa, #ffffff)'
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        bgcolor: 'primary.main', 
+        color: 'white',
+        py: 2,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+      }}>
+        <LibraryBooks fontSize="large" />
+        <Typography variant="h6" component="div">
+          {selectedProject ? 'Edit Project' : 'New Project'}
+        </Typography>
+      </DialogTitle>
 
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="category"
-                  control={control}
-                  defaultValue=""
-                  rules={{ required: 'Category is required' }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Category"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.category}
-                      helperText={errors.category?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Controller
-                  name="description"
-                  control={control}
-                  defaultValue=""
-                  rules={{ required: 'Description is required' }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Description"
-                      fullWidth
-                      multiline
-                      rows={4}
-                      margin="normal"
-                      error={!!errors.description}
-                      helperText={errors.description?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="image_url"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Image URL"
-                      fullWidth
-                      margin="normal"
-                      InputProps={{
-                        endAdornment: <LinkIcon />
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="date"
-                  control={control}
-                  defaultValue={dayjs().format('YYYY-MM-DD')}
-                  rules={{ required: 'Date is required' }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Date"
-                      type="date"
-                      fullWidth
-                      margin="normal"
-                      InputLabelProps={{ shrink: true }}
-                      error={!!errors.date}
-                      helperText={errors.date?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="source_code_url"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Source Code URL"
-                      fullWidth
-                      margin="normal"
-                      InputProps={{
-                        endAdornment: <LinkIcon />
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="live_site_url"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Live Site URL"
-                      fullWidth
-                      margin="normal"
-                      InputProps={{
-                        endAdornment: <LinkIcon />
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Technologies</InputLabel>
-                  <Controller
-                    name="skills"
-                    control={control}
-                    defaultValue={[]}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        multiple
-                        label="Technologies"
-                        renderValue={(selected) => (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {selected.map((value) => (
-                              <Chip 
-                                key={value} 
-                                label={skills.find(s => s.id === value)?.name} 
-                              />
-                            ))}
-                          </Box>
-                        )}
-                      >
-                        {skills.map((skill) => (
-                          <MenuItem key={skill.id} value={skill.id}>
-                            {skill.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogContent sx={{ pt: 4, pb: 2 }}>
+          <Grid container spacing={3}>
+            {/* Title Field */}
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="title"
+                control={control}
+                defaultValue=""
+                rules={{ required: 'Title is required' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Title"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    error={!!errors.title}
+                    helperText={errors.title?.message}
+                    InputProps={{
+                      startAdornment: <Title fontSize="small" color="action" sx={{ mr: 1 }} />
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
+                      }
+                    }}
                   />
-                </FormControl>
-              </Grid>
+                )}
+              />
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              {selectedProject ? 'Update' : 'Create'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+
+            {/* Category Field */}
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="category"
+                control={control}
+                defaultValue=""
+                rules={{ required: 'Category is required' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Category"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    error={!!errors.category}
+                    helperText={errors.category?.message}
+                    InputProps={{
+                      startAdornment: <Category fontSize="small" color="action" sx={{ mr: 1 }} />
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Description Field */}
+            <Grid item xs={12}>
+              <Controller
+                name="description"
+                control={control}
+                defaultValue=""
+                rules={{ required: 'Description is required' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Description"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    variant="outlined"
+                    size="small"
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
+                    InputProps={{
+                      startAdornment: <Description fontSize="small" color="action" sx={{ mr: 1, mt: 1.5 }} />
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
+                      },
+                      '& textarea': {
+                        resize: 'vertical'
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Image URL Field */}
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="image_url"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Featured Image URL"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    InputProps={{
+                      startAdornment: <ImageIcon fontSize="small" color="action" sx={{ mr: 1 }} />,
+                      endAdornment: (
+                        <IconButton 
+                          size="small" 
+                          onClick={() => window.open(field.value, '_blank')}
+                          disabled={!field.value}
+                        >
+                          <LinkIcon fontSize="small" />
+                        </IconButton>
+                      )
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Date Field */}
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="date"
+                control={control}
+                defaultValue={dayjs().format('YYYY-MM-DD')}
+                rules={{ required: 'Date is required' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Project Date"
+                    type="date"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    error={!!errors.date}
+                    helperText={errors.date?.message}
+                    InputProps={{
+                      startAdornment: <CalendarToday fontSize="small" color="action" sx={{ mr: 1 }} />
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* URL Fields */}
+            {['source_code_url', 'live_site_url'].map((fieldName, index) => (
+              <Grid item xs={12} md={6} key={fieldName}>
+                <Controller
+                  name={fieldName}
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      InputProps={{
+                        startAdornment: <Code fontSize="small" color="action" sx={{ mr: 1 }} />,
+                        endAdornment: (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => window.open(field.value, '_blank')}
+                            disabled={!field.value}
+                          >
+                            <LinkIcon fontSize="small" />
+                          </IconButton>
+                        )
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          backgroundColor: 'background.paper'
+                        }
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+            ))}
+
+            {/* Technologies Select */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel shrink>Technologies Used</InputLabel>
+                <Controller
+                  name="skills"
+                  control={control}
+                  defaultValue={[]}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      multiple
+                      variant="outlined"
+                      size="small"
+                      label="Technologies Used"
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => {
+                            const skill = skills.find(s => s.id === value);
+                            return (
+                              <Chip
+                                key={value}
+                                label={skill?.name}
+                                sx={{
+                                  backgroundColor: 'primary.light',
+                                  color: 'white',
+                                  '& .MuiChip-deleteIcon': { color: 'white' }
+                                }}
+                              />
+                            );
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            borderRadius: 2,
+                            mt: 1
+                          }
+                        }
+                      }}
+                      sx={{
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper',
+                        '& .MuiSelect-select': { py: 1.5 }
+                      }}
+                    >
+                      {skills.map((skill) => (
+                        <MenuItem 
+                          key={skill.id} 
+                          value={skill.id}
+                          sx={{
+                            '&.Mui-selected': { 
+                              backgroundColor: 'primary.light',
+                              color: 'white',
+                              '&:hover': { backgroundColor: 'primary.main' }
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Workspaces fontSize="small" />
+                            {skill.name}
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 4, pb: 3, gap: 2 }}>
+          <Button 
+            onClick={() => setOpenDialog(false)}
+            variant="outlined"
+            sx={{
+              px: 4,
+              borderRadius: 2,
+              textTransform: 'none',
+              borderWidth: 2,
+              '&:hover': { borderWidth: 2 }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained"
+            sx={{
+              px: 4,
+              borderRadius: 2,
+              textTransform: 'none',
+              boxShadow: 'none',
+              '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }
+            }}
+          >
+            {selectedProject ? 'Update Project' : 'Create Project'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
