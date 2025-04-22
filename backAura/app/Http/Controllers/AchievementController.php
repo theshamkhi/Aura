@@ -6,7 +6,6 @@ use App\Models\Achievement;
 use App\Models\Portfolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class AchievementController extends Controller
 {
@@ -15,21 +14,13 @@ class AchievementController extends Controller
      */
     public function index(Portfolio $portfolio)
     {
+        $achievements = $portfolio->achievements()
+            ->latest()
+            ->get(['id', 'title', 'description', 'image_url', 'date', 'created_at']);
+
         return response()->json([
             'status' => 'success',
-            'achievements' => $portfolio->achievements()
-                ->latest()
-                ->get()
-                ->map(function($achievement) {
-                    return [
-                        'id' => $achievement->id,
-                        'title' => $achievement->title,
-                        'description' => $achievement->description,
-                        'image_url' => $achievement->image_url,
-                        'date' => $achievement->date,
-                        'created_at' => $achievement->created_at
-                    ];
-                })
+            'achievements' => $achievements
         ]);
     }
 
@@ -44,14 +35,7 @@ class AchievementController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'achievement' => [
-                'id' => $achievement->id,
-                'title' => $achievement->title,
-                'description' => $achievement->description,
-                'image_url' => $achievement->image_url,
-                'date' => $achievement->date,
-                'created_at' => $achievement->created_at
-            ]
+            'achievement' => $achievement->only(['id', 'title', 'description', 'image_url', 'date', 'created_at'])
         ]);
     }
 
@@ -62,28 +46,20 @@ class AchievementController extends Controller
     {
         $portfolio = Auth::user()->portfolio;
 
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'image_url' => 'nullable|url',
             'date' => 'required|date'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $data = $validator->validated();
-        $data['portfolio_id'] = $portfolio->id;
-
-        $achievement = Achievement::create($data);
+        $validated['portfolio_id'] = $portfolio->id;
+        
+        $achievement = Achievement::create($validated);
 
         return response()->json([
             'status' => 'success',
-            'achievement' => $this->formatAchievement($achievement)
+            'achievement' => $achievement->only(['id', 'title', 'description', 'image_url', 'date'])
         ], 201);
     }
 
@@ -96,25 +72,19 @@ class AchievementController extends Controller
             abort(403, 'Unauthorized action');
         }
 
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
             'image_url' => 'nullable|url',
             'date' => 'sometimes|date'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $achievement->update($validator->validated());
+        $achievement->update($validated);
+        $achievement->refresh();
 
         return response()->json([
             'status' => 'success',
-            'achievement' => $this->formatAchievement($achievement->fresh())
+            'achievement' => $achievement->only(['id', 'title', 'description', 'image_url', 'date'])
         ]);
     }
 
@@ -133,19 +103,5 @@ class AchievementController extends Controller
             'status' => 'success',
             'message' => 'Achievement deleted successfully'
         ]);
-    }
-
-    /**
-     * Format achievement response
-     */
-    private function formatAchievement(Achievement $achievement)
-    {
-        return [
-            'id' => $achievement->id,
-            'title' => $achievement->title,
-            'description' => $achievement->description,
-            'image_url' => $achievement->image_url,
-            'date' => $achievement->date
-        ];
     }
 }
