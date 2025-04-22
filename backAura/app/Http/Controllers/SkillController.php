@@ -15,10 +15,23 @@ class SkillController extends Controller
      */
     public function index(Portfolio $portfolio)
     {
-        $skills = $portfolio->skills()->latest()->get();
+        return response()->json([
+            'skills' => $portfolio->skills()->with('projects')->get()
+        ]);
+    }
+
+    /**
+     * Display the specified skill
+     */
+    public function show(Skill $skill)
+    {
+        if ($skill->portfolio_id !== Auth::user()->portfolio->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return response()->json([
             'status' => 'success',
-            'skills' => $skills
+            'skill' => $skill->load('projects')
         ]);
     }
 
@@ -42,7 +55,7 @@ class SkillController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'skill' => $skill
+            'skill' => $skill->load('projects')
         ], 201);
     }
 
@@ -67,7 +80,7 @@ class SkillController extends Controller
         $skill->update($validated);
         return response()->json([
             'status' => 'success',
-            'skill' => $skill
+            'skill' => $skill->load('projects')
         ]);
     }
 
@@ -87,7 +100,8 @@ class SkillController extends Controller
         $skill->projects()->syncWithoutDetaching([$validated['project_id']]);
         return response()->json([
             'status' => 'success',
-            'message' => 'Skill attached to project'
+            'message' => 'Skill attached to project',
+            'skill' => $skill->load('projects')
         ]);
     }
 
@@ -105,7 +119,11 @@ class SkillController extends Controller
         ]);
 
         $skill->projects()->detach($validated['project_id']);
-        return response()->json(['status' => 'success', 'message' => 'Skill detached from project']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Skill detached from project',
+            'skill' => $skill->load('projects')
+        ]);
     }
 
     /**
