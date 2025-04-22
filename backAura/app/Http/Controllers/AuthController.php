@@ -54,16 +54,18 @@ class AuthController extends Controller
         ]);
     
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid login credentials'
-            ], 401);
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
     
         $user = $request->user();
         $token = $user->createToken('aura_token')->plainTextToken;
     
+        $user->load(['portfolio' => function($query) {
+            $query->with(['projects', 'skills', 'achievements', 'visitors', 'messages']);
+        }]);
+    
         return response()->json([
-            'user' => $user->only('id', 'name', 'email', 'job', 'photo'),
+            'user' => $user,
             'token' => $token,
         ]);
     }
@@ -85,16 +87,10 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return response()->json([
-            'user' => $request->user()->load([
-                'portfolio' => function($query) {
-                    $query->withCount(['projects', 'achievements', 'visitors', 'messages'])
-                          ->with([
-                              'projects.technologies',
-                              'skills'
-                          ]);
-                }
-            ])
-        ]);
+        $user = $request->user();
+        $user->load(['portfolio' => function($query) {
+            $query->with(['projects', 'skills', 'achievements', 'visitors', 'messages']);
+        }]);
+        return response()->json(['user' => $user]);
     }
 }
