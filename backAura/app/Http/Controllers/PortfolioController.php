@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Portfolio;
+use App\Models\ProjectView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -39,8 +40,14 @@ class PortfolioController extends Controller
      */
     private function getPortfolioStats(Portfolio $portfolio)
     {
+        $totalViews = ProjectView::whereIn('project_id', $portfolio->projects->pluck('id'))
+            ->count();
+
+        $projectsCount = $portfolio->projects()->count();
+        $averageViews = $projectsCount > 0 ? round($totalViews / $projectsCount, 1) : 0;
+
         return [
-            'projects' => $portfolio->projects()->count(),
+            'projects' => $projectsCount,
             'skills' => $portfolio->skills()->count(),
             'achievements' => $portfolio->achievements()->count(),
             'visitors' => [
@@ -51,8 +58,8 @@ class PortfolioController extends Controller
                     ->count()
             ],
             'engagement' => [
-                'total_views' => $portfolio->projects()->sum('views_count'),
-                'average_views' => $portfolio->projects()->avg('views_count'),
+                'total_views' => $totalViews,
+                'average_views' => $averageViews,
                 'popular_projects' => $portfolio->projects()
                     ->withCount('views')
                     ->orderByDesc('views_count')
