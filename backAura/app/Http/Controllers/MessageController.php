@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\NewMessageNotification;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class MessageController extends Controller
@@ -39,8 +38,7 @@ class MessageController extends Controller
             ]);
     
             if ($message->sender_email) {
-                Mail::to($portfolio->owner->email)
-                    ->send(new NewMessageNotification($message));
+                Mail::to($portfolio->owner->email)->send(new NewMessageNotification($message));
             }
 
             return response()->json([
