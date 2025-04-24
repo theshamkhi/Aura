@@ -41,13 +41,20 @@ Route::get('/projects/{project}/stats', [ProjectViewController::class, 'projectS
 Route::get('/portfolio/{portfolio}/skills', [SkillController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/skills', [SkillController::class, 'store']);
+    Route::get('/skills/{skill}', [SkillController::class, 'show']);
     Route::put('/skills/{skill}', [SkillController::class, 'update']);
     Route::post('/skills/{skill}/attach', [SkillController::class, 'attachToProject']);
     Route::post('/skills/{skill}/detach', [SkillController::class, 'detachFromProject']);
     Route::delete('/skills/{skill}', [SkillController::class, 'destroy']);
 });
 // A C H I E V E M E N T S
-Route::apiResource('achievements', AchievementController::class);
+Route::get('/portfolio/{portfolio}/achievements', [AchievementController::class, 'index']);
+Route::get('/portfolio/{portfolio}/achievements/{achievement}', [AchievementController::class, 'show']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/achievements', [AchievementController::class, 'store']);
+    Route::put('/achievements/{achievement}', [AchievementController::class, 'update']);
+    Route::delete('/achievements/{achievement}', [AchievementController::class, 'destroy']);
+});
 // V I S I T O R S
 Route::post('/portfolio/{portfolio}/visitors/track', [VisitorController::class, 'track']);
 Route::middleware('auth:sanctum')->group(function () {
