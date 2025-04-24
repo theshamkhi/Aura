@@ -6,6 +6,9 @@ import { Register } from './pages/Register';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Overview } from './pages/Overview';
 import { Projects } from './pages/Projects';
+import { Achievements } from './pages/Achievements';
+import { Skills } from './pages/Skills';
+import { Messages } from './pages/Messages';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from './theme';
 
@@ -25,10 +28,10 @@ function App() {
             }>
               <Route index element={<Overview />} />
               <Route path="projects" element={<Projects />} />
-              {/* <Route path="skills" element={<Skills />} />
+              <Route path="skills" element={<Skills />} />
               <Route path="achievements" element={<Achievements />} />
               <Route path="messages" element={<Messages />} />
-              <Route path="settings" element={<Settings />} /> */}
+              <Route path="messages/:messageId" element={<Messages />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
