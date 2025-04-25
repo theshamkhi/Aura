@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { motion } from 'framer-motion';
 import {
   Person,
   Work,
@@ -15,9 +14,10 @@ import {
   CloudUpload,
   Mail,
   People,
-  BarChart as BarChartIcon,
   CheckCircleOutline,
-  ErrorOutline
+  ErrorOutline,
+  Close,
+  Delete
 } from '@mui/icons-material';
 import { 
   Box,
@@ -43,7 +43,8 @@ import {
   Tooltip,
   Tabs,
   Tab,
-  useTheme
+  useTheme,
+  IconButton
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { 
@@ -64,8 +65,7 @@ import {
 import { Helmet } from 'react-helmet';
 import { LoadingButton } from '@mui/lab';
 
-
-const MotionPaper = motion.create(Paper);
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL +'/storage/';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -73,17 +73,43 @@ export const Overview = () => {
   const { user } = useAuth();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editPortfolioOpen, setEditPortfolioOpen] = useState(false);
   const [editOwnerOpen, setEditOwnerOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [activeTab, setActiveTab] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const theme = useTheme();
-  const { control, handleSubmit, reset, formState: { errors } } = useForm();
+  const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm();
+  const photoFile = watch('photoFile');
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   useEffect(() => {
     fetchPortfolio();
   }, [user]);
+
+  // Create preview when file is selected
+  useEffect(() => {
+    if (photoFile && photoFile[0]) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(photoFile[0]);
+    }
+  }, [photoFile]);
+
+  // Reset form with portfolio data when opening edit dialog
+  useEffect(() => {
+    if (editOwnerOpen && portfolio) {
+      reset({
+        name: portfolio.owner.name,
+        job: portfolio.owner.job,
+        bio: portfolio.owner.bio,
+        email: portfolio.owner.email,
+        country: portfolio.owner.country,
+      });
+      setPhotoPreview(portfolio.owner.photo);
+    }
+  }, [editOwnerOpen, portfolio, reset]);
 
   const fetchPortfolio = async () => {
     try {
@@ -102,31 +128,13 @@ export const Overview = () => {
     fetchPortfolio();
   };
 
-  const handleUpdatePortfolio = async (data) => {
-    try {
-      const formData = new FormData();
-      if (data.image) formData.append('image', data.image[0]);
-      formData.append('title', data.title);
-
-      const response = await api.post('/portfolio', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      setPortfolio(prev => ({ ...prev, ...response.data.portfolio }));
-      setSnackbar({ open: true, message: 'Portfolio updated successfully', severity: 'success' });
-      setEditPortfolioOpen(false);
-    } catch (error) {
-      setSnackbar({ open: true, message: 'Update failed', severity: 'error' });
-    }
-  };
-
   const handleUpdateOwner = async (data) => {
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
-        if (value instanceof FileList && value.length > 0) {
-          formData.append(key, value[0]);
-        } else if (value !== undefined) {
+        if (key === 'photoFile' && value && value.length > 0) {
+          formData.append('photo', value[0]);
+        } else if (value !== undefined && key !== 'photoFile') {
           formData.append(key, value);
         }
       });
@@ -138,9 +146,15 @@ export const Overview = () => {
       setPortfolio(prev => ({ ...prev, owner: response.data.owner }));
       setSnackbar({ open: true, message: 'Profile updated successfully', severity: 'success' });
       setEditOwnerOpen(false);
+      setPhotoPreview(null);
     } catch (error) {
       setSnackbar({ open: true, message: 'Update failed', severity: 'error' });
     }
+  };
+
+  const handleClearPhotoPreview = () => {
+    setPhotoPreview(null);
+    setValue('photoFile', null);
   };
 
   const calculateProgress = (current) => {
@@ -164,16 +178,6 @@ export const Overview = () => {
     value: project.views
   })) || [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
-  };
-
   if (loading) return <LoadingSkeleton />;
 
   return (
@@ -186,15 +190,9 @@ export const Overview = () => {
         <title>{portfolio.owner.name} | Dashboard Overview</title>
       </Helmet>
 
-      <motion.div 
-        variants={containerVariants} 
-        initial="hidden" 
-        animate="visible"
-        style={{ maxWidth: '1800px', margin: '0 auto' }}
-      >
+      <div style={{ maxWidth: '1800px', margin: '0 auto' }}>
         {/* Profile Header */}
-        <MotionPaper
-          variants={itemVariants}
+        <Paper
           sx={{ 
             p: 4, 
             mb: 4, 
@@ -208,9 +206,10 @@ export const Overview = () => {
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={3} sx={{ textAlign: 'center' }}>
               <Avatar
-                src={portfolio.owner.photo}
-                sx={{ 
-                  width: 160, 
+                src={VITE_BASE_URL + portfolio.owner.photo}
+                alt={portfolio.owner.name}
+                sx={{
+                  width: 160,
                   height: 160, 
                   mb: 2,
                   boxShadow: 6,
@@ -279,7 +278,7 @@ export const Overview = () => {
               </Stack>
             </Grid>
           </Grid>
-        </MotionPaper>
+        </Paper>
 
         {/* Statistics Grid */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -321,8 +320,7 @@ export const Overview = () => {
             }
           ].map((stat, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
-              <MotionPaper
-                variants={itemVariants}
+              <Paper
                 sx={{ 
                   p: 3, 
                   borderRadius: 3,
@@ -348,19 +346,6 @@ export const Overview = () => {
                   </Box>
                 </Box>
                 
-                {stat.subItems && (
-                  <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                    {stat.subItems.map((item, idx) => (
-                      <Tooltip key={idx} title={`${item.label} Visitors`}>
-                        <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="h6">{item.value}</Typography>
-                          <Typography variant="caption">{item.label}</Typography>
-                        </Box>
-                      </Tooltip>
-                    ))}
-                  </Box>
-                )}
-
                 <CircularProgress 
                   variant="determinate" 
                   value={stat.progress} 
@@ -373,7 +358,7 @@ export const Overview = () => {
                     color: 'rgba(255,255,255,0.3)'
                   }}
                 />
-              </MotionPaper>
+              </Paper>
             </Grid>
           ))}
         </Grid>
@@ -522,7 +507,7 @@ export const Overview = () => {
                       src={project.image || 'https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg'}
                       sx={{
                         height: 180,
-                        width: 340,
+                        width: '100%',
                         objectFit: 'cover',
                         borderTopLeftRadius: '4px',
                         borderTopRightRadius: '4px'
@@ -566,169 +551,268 @@ export const Overview = () => {
           </Grid>
         </Box>
 
-        {/* Edit Dialogs */}
-        <EditDialog
-          open={editOwnerOpen}
-          onClose={() => setEditOwnerOpen(false)}
-          title="Edit Profile"
-          onSubmit={handleSubmit(handleUpdateOwner)}
-          gradient="linear-gradient(135deg, #1976d2 0%, #2196f3 100%)"
+        {/* Edit Profile Dialog */}
+        <Dialog 
+          open={editOwnerOpen} 
+          onClose={() => setEditOwnerOpen(false)} 
+          fullWidth 
+          maxWidth="md"
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              overflow: 'hidden'
+            }
+          }}
         >
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="name"
-                control={control}
-                defaultValue={portfolio.owner.name}
-                rules={{ required: 'Name is required' }}
-                render={({ field, fieldState: { error } }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Full Name"
-                    variant="outlined"
-                    error={!!error}
-                    helperText={error?.message}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Person />
-                        </InputAdornment>
-                      ),
-                      sx: { borderRadius: 2 }
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="job"
-                control={control}
-                defaultValue={portfolio.owner.job}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Job Title"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Work />
-                        </InputAdornment>
-                      ),
-                      sx: { borderRadius: 2 }
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                name="bio"
-                control={control}
-                defaultValue={portfolio.owner.bio}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Bio"
-                    variant="outlined"
-                    multiline
-                    rows={4}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Description sx={{ alignSelf: 'flex-start', mt: 1 }} />
-                        </InputAdornment>
-                      ),
-                      sx: { borderRadius: 2 }
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="email"
-                control={control}
-                defaultValue={portfolio.owner.email}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Email"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Email />
-                        </InputAdornment>
-                      ),
-                      sx: { borderRadius: 2 }
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="country"
-                control={control}
-                defaultValue={portfolio.owner.country}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Country"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Public />
-                        </InputAdornment>
-                      ),
-                      sx: { borderRadius: 2 }
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                name="photo"
-                control={control}
-                render={({ field: { value, onChange, ...field } }) => (
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<CloudUpload />}
-                    sx={{
-                      py: 2,
-                      borderRadius: 2,
-                      borderStyle: 'dashed'
-                    }}
-                  >
-                    Upload Profile Photo
-                    <input
-                      {...field}
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={(e) => onChange(e.target.files)}
+          <Box sx={{
+            background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
+            py: 3,
+            px: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Typography variant="h6" component="div" sx={{ fontWeight: 700, color: 'white' }}>
+              Edit Profile
+            </Typography>
+            <IconButton onClick={() => setEditOwnerOpen(false)} sx={{ color: 'white' }}>
+              <Close />
+            </IconButton>
+          </Box>
+          
+          <form onSubmit={handleSubmit(handleUpdateOwner)}>
+            <DialogContent sx={{ pt: 4, pb: 2 }}>
+              {/* Photo Upload Section */}
+              <Box sx={{ 
+                mb: 4, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: 'rgba(25, 118, 210, 0.05)'
+              }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Profile Photo
+                </Typography>
+
+                {photoPreview ? (
+                  <Box sx={{ position: 'relative', mb: 2 }}>
+                    <Avatar 
+                      src={photoPreview} 
+                      alt="Profile Preview" 
+                      sx={{ width: 120, height: 120, boxShadow: 2 }}
                     />
-                  </Button>
+                    <IconButton 
+                      size="small"
+                      onClick={handleClearPhotoPreview}
+                      sx={{ 
+                        position: 'absolute', 
+                        top: -10, 
+                        right: -10, 
+                        backgroundColor: 'white',
+                        boxShadow: 1,
+                        '&:hover': { backgroundColor: '#f5f5f5' }
+                      }}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Avatar 
+                    sx={{ width: 120, height: 120, mb: 2, bgcolor: 'primary.light' }}
+                  >
+                    <Person sx={{ fontSize: 60 }} />
+                  </Avatar>
                 )}
-              />
-            </Grid>
-          </Grid>
-        </EditDialog>
+
+                <Controller
+                  name="photoFile"
+                  control={control}
+                  defaultValue=""
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<CloudUpload />}
+                      sx={{
+                        borderRadius: 2,
+                        textTransform: 'none'
+                      }}
+                    >
+                      {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                      <input
+                        {...field}
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          onChange(e.target.files);
+                        }}
+                      />
+                    </Button>
+                  )}
+                />
+              </Box>
+
+              {/* Form Fields */}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="name"
+                    control={control}
+                    defaultValue={portfolio.owner.name}
+                    rules={{ required: 'Name is required' }}
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Full Name"
+                        variant="outlined"
+                        error={!!error}
+                        helperText={error?.message}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Person />
+                            </InputAdornment>
+                          ),
+                          sx: { borderRadius: 2 }
+                        }}
+                        sx={{ mb: 2 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="job"
+                    control={control}
+                    defaultValue={portfolio.owner.job}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Job Title"
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Work />
+                            </InputAdornment>
+                          ),
+                          sx: { borderRadius: 2 }
+                        }}
+                        sx={{ mb: 2 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Controller
+                    name="bio"
+                    control={control}
+                    defaultValue={portfolio.owner.bio}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Bio"
+                        variant="outlined"
+                        multiline
+                        rows={4}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Description sx={{ alignSelf: 'flex-start', mt: 1 }} />
+                            </InputAdornment>
+                          ),
+                          sx: { borderRadius: 2 }
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="email"
+                    control={control}
+                    defaultValue={portfolio.owner.email}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Email"
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Email />
+                            </InputAdornment>
+                          ),
+                          sx: { borderRadius: 2 }
+                        }}
+                        sx={{ mb: 2 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="country"
+                    control={control}
+                    defaultValue={portfolio.owner.country}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Country"
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Public />
+                            </InputAdornment>
+                          ),
+                          sx: { borderRadius: 2 }
+                        }}
+                        sx={{ mb: 2 }}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, gap: 2 }}>
+              <Button 
+                onClick={() => setEditOwnerOpen(false)} 
+                variant="outlined"
+                sx={{
+                  px: 4,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  borderWidth: 2,
+                  '&:hover': { borderWidth: 2 }
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                variant="contained"
+                sx={{
+                  px: 4,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
+                  color: 'white'
+                }}
+              >
+                Save Changes
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
 
         <Snackbar
           open={snackbar.open}
@@ -751,7 +835,7 @@ export const Overview = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
-      </motion.div>
+      </div>
     </Box>
   );
 };
@@ -778,63 +862,4 @@ const LoadingSkeleton = () => (
       </Grid>
     </Grid>
   </Box>
-);
-
-const EditDialog = ({ open, onClose, title, onSubmit, children, gradient }) => (
-  <Dialog 
-    open={open} 
-    onClose={onClose} 
-    fullWidth 
-    maxWidth="md"
-    PaperProps={{
-      sx: {
-        borderRadius: 3,
-        overflow: 'hidden'
-      }
-    }}
-  >
-    <Box sx={{
-      background: gradient || 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
-      py: 3,
-      px: 4
-    }}>
-      <Typography variant="h6" component="div" sx={{ fontWeight: 700, color: 'white' }}>
-        {title}
-      </Typography>
-    </Box>
-    
-    <form onSubmit={onSubmit}>
-      <DialogContent sx={{ pt: 4, pb: 2 }}>
-        {children}
-      </DialogContent>
-      <DialogActions sx={{ p: 3, gap: 2 }}>
-        <Button 
-          onClick={onClose} 
-          variant="outlined"
-          sx={{
-            px: 4,
-            borderRadius: 2,
-            textTransform: 'none',
-            borderWidth: 2,
-            '&:hover': { borderWidth: 2 }
-          }}
-        >
-          Cancel
-        </Button>
-        <Button 
-          type="submit" 
-          variant="contained"
-          sx={{
-            px: 4,
-            borderRadius: 2,
-            textTransform: 'none',
-            background: gradient || 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
-            color: 'white'
-          }}
-        >
-          Save Changes
-        </Button>
-      </DialogActions>
-    </form>
-  </Dialog>
 );
