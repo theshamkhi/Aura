@@ -50,6 +50,8 @@ import {
 
 const DRAWER_WIDTH = 260;
 
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL + '/storage/';
+
 // Styled components
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
@@ -216,21 +218,21 @@ const navItems = [
  * Displays user information in the sidebar
  */
 const UserProfile = ({ user, isCollapsed, navigate }) => {
-  const theme = useTheme();
+  if (!user) return null;
   
   // Collapsed version (mobile view or when sidebar is minimized)
   if (isCollapsed) {
     return (
       <Box sx={{ py: 2, display: 'flex', justifyContent: 'center' }}>
-        <Tooltip title={user?.name || "User"} placement="right">
+        <Tooltip title={user.name || "User"} placement="right">
           <StyledBadge
             overlap="circular"
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             variant="dot"
           >
             <GradientAvatar 
-              alt={user?.name} 
-              src={user?.photo} 
+              alt={user.name} 
+              src={user.photo ? VITE_BASE_URL + user.photo : undefined} 
               size={40}
             />
           </StyledBadge>
@@ -255,17 +257,17 @@ const UserProfile = ({ user, isCollapsed, navigate }) => {
             variant="dot"
           >
             <GradientAvatar 
-              alt={user?.name} 
-              src={user?.photo} 
+              alt={user.name} 
+              src={user.photo ? VITE_BASE_URL + user.photo : undefined} 
               size={80}
               sx={{ mb: 1 }}
             />
           </StyledBadge>
           <Typography variant="h6" sx={{ mt: 1.5, fontWeight: 600 }}>
-            {user?.name || "User Name"}
+            {user.name || "User Name"}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            {user?.job || "Job Title"}
+            {user.job || "Job Title"}
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
@@ -397,11 +399,15 @@ const UserMenu = ({ anchorEl, handleMenuClose, user, logout }) => (
       },
     }}
   >
-    <Box sx={{ px: 2, py: 1.5 }}>
-      <Typography variant="subtitle1" fontWeight={600}>{user?.name || "User Name"}</Typography>
-      <Typography variant="body2" color="text.secondary">{user?.email || "user@example.com"}</Typography>
-    </Box>
-    <Divider />
+    {user && (
+      <>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="subtitle1" fontWeight={600}>{user.name || "User Name"}</Typography>
+          <Typography variant="body2" color="text.secondary">{user.email || "user@example.com"}</Typography>
+        </Box>
+        <Divider />
+      </>
+    )}
     <MenuItem onClick={handleMenuClose} sx={{ py: 1.5 }}>
       <ListItemIcon>
         <AccountCircle fontSize="small" />
@@ -425,23 +431,21 @@ const UserMenu = ({ anchorEl, handleMenuClose, user, logout }) => (
 );
 
 /**
- * This is the main component that renders the entire dashboard layout
+ * Main component that renders the entire dashboard layout
  */
 export const DashboardLayout = () => {
-  // State management
   const [open, setOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   
-  // Hooks
   const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Handle responsive behavior - close drawer on mobile by default
+  // Handle responsive behavior
   useEffect(() => {
     if (isMobile) {
       setOpen(false);
@@ -458,22 +462,11 @@ export const DashboardLayout = () => {
     }
   }, [location.pathname, isMobile]);
 
-  // Event handlers
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
-  
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // To be added later
-  };
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+  const toggleDarkMode = () => setDarkMode(!darkMode);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -482,7 +475,6 @@ export const DashboardLayout = () => {
       {/* App Bar (Top Navigation) */}
       <AppBarStyled position="fixed" open={open} color="default">
         <Toolbar>
-          {/* Menu Icon - only shows when drawer is closed */}
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -498,7 +490,6 @@ export const DashboardLayout = () => {
             <MenuIcon />
           </IconButton>
           
-          {/* Dashboard Title */}
           <GradientText 
             variant="h6" 
             noWrap 
@@ -511,9 +502,7 @@ export const DashboardLayout = () => {
             Aura Dashboard
           </GradientText>
           
-          {/* Toolbar Icons */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Theme Toggle */}
             <Tooltip title="Toggle theme">
               <IconButton 
                 onClick={toggleDarkMode} 
@@ -527,7 +516,6 @@ export const DashboardLayout = () => {
               </IconButton>
             </Tooltip>
             
-            {/* Notifications */}
             <Tooltip title="Notifications">
               <IconButton 
                 color="inherit"
@@ -542,7 +530,6 @@ export const DashboardLayout = () => {
               </IconButton>
             </Tooltip>
             
-            {/* Help */}
             <Tooltip title="Help">
               <IconButton 
                 color="inherit"
@@ -555,7 +542,6 @@ export const DashboardLayout = () => {
               </IconButton>
             </Tooltip>
             
-            {/* User Avatar */}
             <Tooltip title="Account">
               <IconButton
                 onClick={handleMenuOpen}
@@ -573,7 +559,7 @@ export const DashboardLayout = () => {
                 >
                   <Avatar 
                     alt={user?.name || "User"} 
-                    src={user?.photo}
+                    src={user?.photo ? VITE_BASE_URL + user.photo : undefined}
                     sx={{ 
                       width: 38, 
                       height: 38,
@@ -584,7 +570,6 @@ export const DashboardLayout = () => {
               </IconButton>
             </Tooltip>
             
-            {/* User Menu Dropdown */}
             <UserMenu 
               anchorEl={anchorEl}
               handleMenuClose={handleMenuClose}
@@ -605,7 +590,6 @@ export const DashboardLayout = () => {
             boxSizing: 'border-box',
             boxShadow: 'rgba(0, 0, 0, 0.05) 0px 1px 2px 0px',
             border: 'none',
-            borderRadius: open ? 0 : 0,
             overflow: 'hidden',
           },
         }}
@@ -614,7 +598,6 @@ export const DashboardLayout = () => {
         open={open}
         onClose={handleDrawerClose}
       >
-        {/* Drawer Header with Logo */}
         <DrawerHeader>
           <LogoWrapper>
             <Avatar 
@@ -644,19 +627,19 @@ export const DashboardLayout = () => {
         
         <Divider />
         
-        {/* User Profile Section */}
-        <UserProfile 
-          user={user} 
-          isCollapsed={isCollapsed} 
-          navigate={navigate}
-        />
-
-        <Divider sx={{ mx: 2 }} />
+        {user && (
+          <>
+            <UserProfile 
+              user={user} 
+              isCollapsed={isCollapsed} 
+              navigate={navigate}
+            />
+            <Divider sx={{ mx: 2 }} />
+          </>
+        )}
         
-        {/* Navigation Menu */}
         <NavigationMenu location={location} />
         
-        {/* Logout Button */}
         <Box sx={{ mt: 'auto', p: 2 }}>
           <Divider sx={{ mb: 2 }} />
           <Button
@@ -682,10 +665,9 @@ export const DashboardLayout = () => {
         </Box>
       </Drawer>
 
-      {/* Main Content */}
       <Main open={open}>
         <DrawerHeader />
-          <Outlet />
+        <Outlet />
       </Main>
     </Box>
   );
