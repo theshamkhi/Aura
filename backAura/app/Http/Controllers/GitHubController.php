@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\GitHubService;
-use Illuminate\Http\JsonResponse;
 
-class GitHubController extends Controller
+class GitHubController
 {
     protected GitHubService $github;
 

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Skill;
-use App\Models\Portfolio;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -11,22 +10,26 @@ use Illuminate\Support\Facades\Auth;
 class SkillController extends Controller
 {
     /**
-     * Display a listing of skills for the current portfolio
+     * Display a listing of skills for a portfolio by username
      */
-    public function index(Portfolio $portfolio)
+    public function index($username)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+        
         return response()->json([
             'skills' => $portfolio->skills()->with('projects')->get()
         ]);
     }
 
     /**
-     * Display the specified skill
+     * Display the specified skill in a specific portfolio
      */
-    public function show(Skill $skill)
+    public function show($username, Skill $skill)
     {
-        if ($skill->portfolio_id !== Auth::user()->portfolio->id) {
-            abort(403, 'Unauthorized action.');
+        $portfolio = $this->findPortfolioByUsername($username);
+        
+        if ($skill->portfolio_id !== $portfolio->id) {
+            abort(404, 'Skill not found in this portfolio');
         }
 
         return response()->json([

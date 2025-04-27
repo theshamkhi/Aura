@@ -13,10 +13,11 @@ use Illuminate\Support\Carbon;
 class PortfolioController extends Controller
 {
     /**
-     * Public endpoint: Get portfolio details with statistics
+     * Public endpoint: Get portfolio details with statistics by username
      */
-    public function show(Portfolio $portfolio)
+    public function show($username)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
         $portfolio->load('owner');
         
         return response()->json([
@@ -25,7 +26,11 @@ class PortfolioController extends Controller
                 'image' => $portfolio->image,
                 'owner' => [
                     'name' => $portfolio->owner->name,
+                    'username' => $portfolio->owner->username,
                     'job' => $portfolio->owner->job,
+                    'email' => $portfolio->owner->email,
+                    'cv' => $portfolio->owner->cv,
+                    'socials' => $portfolio->owner->socials,
                     'bio' => $portfolio->owner->bio,
                     'photo' => $portfolio->owner->photo,
                     'country' => $portfolio->owner->country
@@ -126,8 +131,10 @@ class PortfolioController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255|unique:users,email,'.$owner->id,
+            'username' => 'sometimes|string|max:255|unique:users,username,'.$owner->id,
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'job' => 'sometimes|string|max:255',
+            'socials' => 'nullable|json',
             'bio' => 'nullable|string',
             'cv' => 'nullable|file|mimes:pdf|max:5120',
             'country' => 'nullable|string|max:255'

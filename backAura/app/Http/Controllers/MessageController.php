@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\Visitor;
-use App\Models\Portfolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
@@ -16,8 +15,10 @@ class MessageController extends Controller
     /**
      * Public: Submit new message
      */
-    public function store(Request $request, Portfolio $portfolio)
+    public function store(Request $request, $username)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+        
         $validated = $request->validate([
             'sender_name' => 'required|string|max:255',
             'sender_email' => 'nullable|email|max:255',

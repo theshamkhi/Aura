@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
-use App\Models\Portfolio;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
-{
+{   
     /**
-     * Display all projects of a certain Portfolio
+     * Display all public projects of a portfolio identified by username
      */
-    public function index(Portfolio $portfolio)
+    public function index($username)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+        
         return response()->json([
             'projects' => $portfolio->projects()
                 ->with('technologies')
@@ -27,8 +28,10 @@ class ProjectController extends Controller
     /**
      * Display certain project of a certain Portfolio
      */
-    public function show(Portfolio $portfolio, Project $project)
+    public function show($username, Project $project)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+
         if ($project->portfolio_id !== $portfolio->id) {
             abort(404, 'Project not found in this portfolio');
         }
@@ -41,8 +44,10 @@ class ProjectController extends Controller
     /**
      * Filter Projects by Technology
      */
-    public function filterByTechnology(Portfolio $portfolio, Skill $skill)
+    public function filterByTechnology($username, Skill $skill)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+
         if ($skill->portfolio_id !== $portfolio->id) {
             abort(404, 'Skill not found in this portfolio');
         }
@@ -53,7 +58,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Stor newly created Project
+     * Store newly created Project
      */
     public function store(Request $request)
     {
@@ -93,9 +98,9 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        $portfolioID = Auth::user()->portfolio->id;
+        $portfolio = Auth::user()->portfolio;
 
-        if ($project->portfolio_id !== $portfolioID) {
+        if ($project->portfolio_id !== $portfolio->id) {
             abort(403, 'Unauthorized action');
         }
 
@@ -109,7 +114,7 @@ class ProjectController extends Controller
             'live_site_url' => 'nullable|url',
             'skills' => 'nullable|array',
             'skills.*' => [
-                Rule::exists('skills', 'id')->where('portfolio_id', $portfolioID)
+                Rule::exists('skills', 'id')->where('portfolio_id', $portfolio->id)
             ]
         ]);
 

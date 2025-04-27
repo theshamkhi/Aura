@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Achievement;
-use App\Models\Portfolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AchievementController extends Controller
 {
     /**
-     * Public: List achievements for a portfolio
+     * Public: List achievements for a portfolio by username
      */
-    public function index(Portfolio $portfolio)
+    public function index($username)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+        
         $achievements = $portfolio->achievements()
             ->latest()
             ->get(['id', 'title', 'description', 'image_url', 'date', 'created_at']);
@@ -25,10 +26,12 @@ class AchievementController extends Controller
     }
 
     /**
-     * Public: Show single achievement
+     * Public: Show single achievement by username and achievement
      */
-    public function show(Portfolio $portfolio, Achievement $achievement)
+    public function show($username, Achievement $achievement)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+        
         if ($achievement->portfolio_id !== $portfolio->id) {
             abort(404, 'Achievement not found in this portfolio');
         }

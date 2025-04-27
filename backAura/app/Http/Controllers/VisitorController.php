@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Visitor;
-use App\Models\Portfolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -14,8 +13,10 @@ class VisitorController extends Controller
     /**
      * Track visitor session
      */
-    public function track(Request $request, Portfolio $portfolio)
+    public function track(Request $request, $username)
     {
+        $portfolio = $this->findPortfolioByUsername($username);
+        
         $validated = $request->validate([
             'session_id' => 'required|string|min:20|max:255'
         ]);

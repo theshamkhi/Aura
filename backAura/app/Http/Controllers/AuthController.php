@@ -17,6 +17,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
+            'username' => 'required|string|unique:users',
             'password' => 'required|min:8',
             'job' => 'required|string|max:255',
         ]);
@@ -33,12 +34,12 @@ class AuthController extends Controller
             DB::commit();
             
             return response()->json([
-                'user' => $user->only('id', 'name', 'email', 'job'),
+                'user' => $user->only('id', 'name', 'email', 'username', 'job'),
             ], 201);
             
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Registration failed'], 500);
+            return response()->json(['message' => 'Registration failed' . $e], 500);
         }
     }
 
