@@ -13,7 +13,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 
-// Enhanced styled components with animation properties - matching login page
+
 const GradientButton = styled(Button)(({ theme }) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
   color: 'white',
@@ -128,7 +128,7 @@ const BackgroundPattern = () => (
   </svg>
 );
 
-// Enhanced feature cards for the left panel
+
 const FeatureCard = ({ icon, title, description }) => {
   const theme = useTheme();
   
@@ -179,8 +179,8 @@ export const Register = () => {
   const [userData, setUserData] = useState({
     name: '',
     email: '',
+    username: '',
     password: '',
-    confirmPassword: '',
     job: ''
   });
   const [error, setError] = useState('');
@@ -217,12 +217,6 @@ export const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic validation
-    if (userData.password !== userData.confirmPassword) {
-      setError("Passwords don't match");
-      return;
-    }
-    
     setIsLoading(true);
     setError('');
     
@@ -230,6 +224,7 @@ export const Register = () => {
       const result = await register({
         name: userData.name,
         email: userData.email,
+        username: userData.username,
         password: userData.password,
         job: userData.job
       });
@@ -462,10 +457,33 @@ export const Register = () => {
                   value={userData.name}
                   onChange={(e) => setUserData({ ...userData, name: e.target.value })}
                   required
-                  placeholder="John Doe"
-                  InputProps={{
-                    sx: { py: 0.5 }
-                  }}
+                  placeholder="Mohammed SHAMKHI"
+                />
+              </MotionBox>
+
+              <MotionBox variants={itemVariants}>
+                <StyledTextField
+                  fullWidth
+                  variant="outlined"
+                  label="Username"
+                  type="text"
+                  value={userData.username}
+                  onChange={(e) => setUserData({ ...userData, username: e.target.value })}
+                  required
+                  placeholder="e.g. theshamkhi"
+                />
+              </MotionBox>
+
+              <MotionBox variants={itemVariants}>
+                <StyledTextField
+                  fullWidth
+                  variant="outlined"
+                  label="Job Title"
+                  type="text"
+                  value={userData.job}
+                  onChange={(e) => setUserData({ ...userData, job: e.target.value })}
+                  required
+                  placeholder="e.g. Developer, Designer, Manager"
                 />
               </MotionBox>
               
@@ -479,9 +497,6 @@ export const Register = () => {
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                   required
                   placeholder="your@email.com"
-                  InputProps={{
-                    sx: { py: 0.5 }
-                  }}
                 />
               </MotionBox>
               
@@ -496,7 +511,6 @@ export const Register = () => {
                   required
                   placeholder="••••••••"
                   InputProps={{
-                    sx: { py: 0.5 },
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
@@ -514,38 +528,6 @@ export const Register = () => {
                         </IconButton>
                       </InputAdornment>
                     ),
-                  }}
-                />
-              </MotionBox>
-              
-              <MotionBox variants={itemVariants}>
-                <StyledTextField
-                  fullWidth
-                  variant="outlined"
-                  label="Confirm Password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={userData.confirmPassword}
-                  onChange={(e) => setUserData({ ...userData, confirmPassword: e.target.value })}
-                  required
-                  placeholder="••••••••"
-                  InputProps={{
-                    sx: { py: 0.5 }
-                  }}
-                />
-              </MotionBox>
-              
-              <MotionBox variants={itemVariants}>
-                <StyledTextField
-                  fullWidth
-                  variant="outlined"
-                  label="Job Title"
-                  type="text"
-                  value={userData.job}
-                  onChange={(e) => setUserData({ ...userData, job: e.target.value })}
-                  required
-                  placeholder="e.g. Developer, Designer, Manager"
-                  InputProps={{
-                    sx: { py: 0.5 }
                   }}
                 />
               </MotionBox>
