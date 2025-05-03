@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { AnimatedUnderline } from './Animation';
 
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import EmailIcon from '@mui/icons-material/Email';
 import InstagramIcon from '@mui/icons-material/Instagram';
+import { Box, Typography } from '@mui/material';
+import { motion } from 'framer-motion';
 import { 
   Send,
   Loader2,
@@ -181,10 +184,30 @@ export const Contact = ({ loading, portfolio, githubStats }) => {
       <div className="container relative z-10 max-w-6xl px-4 mx-auto">
         {/* Header section with animated underline */}
         <div className="relative text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <Typography 
+              variant="overline" 
+              sx={{ 
+                color: '#4CC9F0', 
+                letterSpacing: 4,
+                fontWeight: 'bold',
+                fontSize: '0.9rem'
+              }}
+            >
+              CONTACT
+            </Typography>
+          </motion.div>
           <h2 className="mb-3 text-5xl font-bold text-white md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-indigo-400">
             Let's Connect
           </h2>
-          <div className="w-24 h-1 mx-auto mt-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <AnimatedUnderline width="80px" />
+          </Box>
           <p className="max-w-xl mx-auto mt-6 text-lg text-indigo-100 opacity-80">
             Have a project in mind or want to collaborate? I'd love to hear from you!
           </p>
@@ -369,7 +392,7 @@ export const Contact = ({ loading, portfolio, githubStats }) => {
         </div>
       </div>
 
-      {/* Notification toast with improved styling */}
+      {/* Notification */}
       {notification.visible && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <div className={`px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 min-w-[300px] backdrop-blur-lg ${
@@ -391,8 +414,8 @@ export const Contact = ({ loading, portfolio, githubStats }) => {
         </div>
       )}
 
-      {/* Add custom animation styles */}
-      <style jsx>{`
+      {/* animation styles */}
+      <style>{`
         @keyframes shimmer {
           0% {
             transform: translateX(-100%);
