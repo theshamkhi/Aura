@@ -6,7 +6,6 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import EmailIcon from '@mui/icons-material/Email';
 import InstagramIcon from '@mui/icons-material/Instagram';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SmoothMarquee } from './Animation.jsx';
 
@@ -91,7 +90,6 @@ const Hero = ({ portfolio, loading }) => {
         setScrollDirection('none');
       }
       
-      // Update last position for next comparison
       setLastScrollPosition(scrollPosition);
     };
 
@@ -135,15 +133,6 @@ const Hero = ({ portfolio, loading }) => {
     }
   };
 
-  // Scroll to next section smoothly
-  const scrollToNext = () => {
-    const nextSection = document.querySelector('#about') || document.querySelector('section:nth-of-type(2)');
-    if (nextSection) {
-      nextSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  // Scroll down indicator animation
   const ScrollIndicator = () => (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -161,34 +150,9 @@ const Hero = ({ portfolio, loading }) => {
         zIndex: 10
       }}
     >
-      <motion.div
-        animate={{ y: [0, 10, 0] }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      >
-        <IconButton
-          onClick={scrollToNext}
-          sx={{
-            color: 'white',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            p: 1,
-            '&:hover': {
-              background: 'rgba(255, 255, 255, 0.2)',
-            }
-          }}
-        >
-          <ArrowDownwardIcon />
-        </IconButton>
-      </motion.div>
     </motion.div>
   );
 
-  // Vertical Social Links Component
   const VerticalSocialLinks = () => (
     <Box
       sx={{
@@ -289,7 +253,7 @@ const Hero = ({ portfolio, loading }) => {
   );
 
   return (
-    <Box 
+    <Box
       sx={{ 
         minHeight: '100vh',
         backgroundImage: heroBackground,
