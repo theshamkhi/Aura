@@ -177,9 +177,9 @@ export const Skills = () => {
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const portfolioId = user?.portfolio?.id;
-        if (portfolioId) {
-          const response = await api.get(`/portfolio/${portfolioId}/skills`);
+        const username = user?.username;
+        if (username) {
+          const response = await api.get(`/${username}/skills`);
           setSkills(response.data.skills);
         }
       } catch (error) {
@@ -239,15 +239,14 @@ export const Skills = () => {
 
   const onSubmit = async (data) => {
     try {
-      const portfolioId = user?.portfolio?.id;
-  
+
       if (selectedSkill) {
         await api.put(`/skills/${selectedSkill.id}`, data);
       } else {
         await api.post('/skills', data);
       }
-  
-      const skillsResponse = await api.get(`/portfolio/${portfolioId}/skills`);
+      const username = user?.username;
+      const skillsResponse = await api.get(`/${username}/skills`)
       setSkills(skillsResponse.data.skills);
   
       setSnackbar({ 
