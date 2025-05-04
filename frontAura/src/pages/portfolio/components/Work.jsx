@@ -126,7 +126,7 @@ const Work = ({ projects, loading }) => {
               className="group px-8 py-3 rounded-full text-white font-semibold text-lg tracking-wider cursor-pointer border border-[rgba(76,201,240,0.3)] bg-[rgba(67,97,238,0.08)] hover:border-[#4CC9F0] hover:bg-[rgba(76,201,240,0.15)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden hover:shadow-[0_10px_30px_rgba(76,201,240,0.25)]"
               onClick={() => window.location.href = `/${username}/projects`}
             >
-              <span className="relative z-10">Explore All Projects</span>
+              <span className="relative z-10">More</span>
               <span className="absolute top-[-100%] left-[-100%] w-[300%] h-[300%] bg-gradient-to-r from-transparent via-[rgba(76,201,240,0.15)] to-transparent origin-center rotate-45 transition-all duration-700 group-hover:left-full"></span>
             </button>
           </motion.div>
