@@ -56,9 +56,9 @@ export const Achievements = () => {
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
-        const portfolioId = user?.portfolio?.id;
-        if (portfolioId) {
-          const response = await api.get(`/portfolio/${portfolioId}/achievements`);
+        const username = user?.username;
+        if (username) {
+          const response = await api.get(`/${username}/achievements`);
           setAchievements(response.data.achievements);
         }
       } catch (error) {
