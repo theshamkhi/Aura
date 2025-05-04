@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, Container, Grid, Skeleton, useMediaQuery, IconButton, Tooltip } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -406,12 +407,11 @@ const Hero = ({ portfolio, loading }) => {
 
                       <Button
                         variant="outlined"
-                        component="a"
-                        href="#contact"
+                        startIcon={<VisibilityIcon />}
                         sx={{
                           borderRadius: 40,
                           px: { xs: 4, sm: 5, md: 7 },
-                          py: 1.2,
+                          py: 1,
                           textTransform: 'none',
                           fontSize: { xs: '0.95rem', sm: '1.05rem' },
                           fontWeight: 600,
@@ -430,7 +430,7 @@ const Hero = ({ portfolio, loading }) => {
                           }
                         }}
                       >
-                        Contact Me
+                        {portfolio?.stats?.visitors?.total || 0} Visitors
                       </Button>
                     </motion.div>
 
