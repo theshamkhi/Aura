@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { AnimatedUnderline } from './Animation';
-
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -62,7 +61,6 @@ export const Contact = ({ loading, portfolio, githubStats }) => {
       [name]: value
     }));
     
-    // Clear the error when I start typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -80,7 +78,6 @@ export const Contact = ({ loading, portfolio, githubStats }) => {
     
     setIsSubmitting(true);
     
-    // Get session ID from localStorage
     const SESSION_ID_KEY = 'visitor_session_id';
     const sessionId = localStorage.getItem(SESSION_ID_KEY);
     
@@ -147,7 +144,6 @@ export const Contact = ({ loading, portfolio, githubStats }) => {
     }));
   };
 
-  // Auto-hide notification after 5 seconds
   useEffect(() => {
     if (notification.visible) {
       const timer = setTimeout(() => {
