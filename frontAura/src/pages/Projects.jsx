@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import {
-  Add, Edit, Delete, Code, Visibility, Search,
+  Add, Edit, Delete, Search,
   FilterList, Sort, Image as ImageIcon, GitHub, Language
 } from '@mui/icons-material';
 import {
@@ -13,7 +13,7 @@ import {
   FormControl, InputLabel, Select, MenuItem,
   DialogTitle, DialogContent, DialogActions,
   InputAdornment, Tooltip, Pagination,
-  Avatar, Badge, Divider, useTheme, alpha,
+  Avatar, Divider, useTheme, alpha,
   Container, Fade, DialogContentText
 } from '@mui/material';
 import dayjs from 'dayjs';
@@ -53,11 +53,11 @@ export const Projects = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const portfolioId = user?.portfolio?.id;
-        if (portfolioId) {
+        const username = user?.username;
+        if (username) {
           const [projectsRes, skillsRes] = await Promise.all([
-            api.get(`/portfolio/${portfolioId}/projects`),
-            api.get(`/portfolio/${portfolioId}/skills`)
+            api.get(`/${username}/projects`),
+            api.get(`/${username}/skills`)
           ]);
           
           setProjects(projectsRes.data.projects);
@@ -325,7 +325,11 @@ export const Projects = () => {
             }}
           >
             <Typography variant="h6" color="text.secondary" gutterBottom>Technologies Used</Typography>
-            <Typography variant="h3" fontWeight="bold">{skills.length}</Typography>
+            <Typography variant="h3" fontWeight="bold">
+              {Array.from(new Set(projects.flatMap(project => 
+                project.technologies?.map(tech => tech.id) || []
+              ))).length}
+            </Typography>
           </Paper>
         </Grid>
       </Grid>
@@ -425,25 +429,42 @@ export const Projects = () => {
       {filteredProjects.length > 0 ? (
         <Fade in={!loading}>
           <Box>
-            <Grid container spacing={4}>
-              {currentProjects.map((project) => (
-                <Grid item xs={12} sm={6} md={4} lg={4} key={project.id}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-10px)',
-                        boxShadow: '0 20px 30px rgba(0,0,0,0.1)',
-                      },
-                      border: `1px solid ${theme.palette.divider}`,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                    }}
-                  >
+          <Grid 
+            container 
+            spacing={4}
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',            
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(3, 1fr)',
+              },
+              gap: 4,
+              '& > .MuiGrid-item': {
+                paddingLeft: 0,
+                paddingTop: 0,
+                width: '100%',
+              }
+            }}
+          >
+            {currentProjects.map((project) => (
+              <Grid item key={project.id}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-10px)',
+                      boxShadow: '0 20px 30px rgba(0,0,0,0.1)',
+                    },
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                  }}
+                >
                     <Box sx={{ position: 'relative', width: '100%', height: 170 }}>
                       <CardMedia
                         component="img"
