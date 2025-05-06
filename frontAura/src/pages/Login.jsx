@@ -14,7 +14,6 @@ import {
 import { styled } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 
-// Enhanced styled components with animation properties
 const GradientButton = styled(Button)(({ theme }) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
   color: 'white',
@@ -103,10 +102,8 @@ const BrandAvatar = styled(Avatar)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-// Animated container for login form elements
 const MotionBox = motion.create(Box);
 
-// Background illustrations for the left panel (SVG paths)
 const BackgroundPattern = () => (
   <svg
     className="absolute inset-0 w-full h-full opacity-10"
@@ -129,7 +126,6 @@ const BackgroundPattern = () => (
   </svg>
 );
 
-// Enhanced feature cards for the left panel
 const FeatureCard = ({ icon, title, description }) => {
   const theme = useTheme();
   
@@ -234,7 +230,7 @@ export const Login = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Left Panel - Enhanced Brand Information */}
+      {/* Left Panel */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 p-12 flex-col justify-between text-white relative overflow-hidden">
         <BackgroundPattern />
         
@@ -317,7 +313,7 @@ export const Login = () => {
         </Typography>
       </div>
       
-      {/* Right Panel - Enhanced Login Form */}
+      {/* Right Panel*/}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-white">
         <Paper 
           elevation={0} 

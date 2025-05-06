@@ -102,10 +102,8 @@ const BrandAvatar = styled(Avatar)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-// Animated container for form elements
 const MotionBox = motion.create(Box);
 
-// Background illustrations for the left panel (SVG paths)
 const BackgroundPattern = () => (
   <svg
     className="absolute inset-0 w-full h-full opacity-10"
@@ -189,7 +187,6 @@ export const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Animation variants for staggered animations
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
