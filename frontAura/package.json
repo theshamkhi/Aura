@@ -23,7 +23,7 @@
     "axios": "^1.8.4",
     "dayjs": "^1.11.13",
     "file-saver": "^2.0.5",
-    "framer-motion": "^12.7.4",
+    "framer-motion": "^12.9.4",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.503.0",
     "material-ui-confirm": "^4.0.0",
@@ -34,9 +34,11 @@
     "react-hook-form": "^7.55.0",
     "react-router-dom": "^7.5.0",
     "react-tsparticles": "^2.12.2",
+    "react-ui-animate": "^4.2.0",
     "recharts": "^2.15.3",
     "tailwindcss": "^4.1.4",
-    "tsparticles": "^3.8.1"
+    "tsparticles": "^3.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
