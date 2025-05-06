@@ -25,6 +25,7 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlobalStyles } from '@mui/material';
+import api from '../api/axios';
 
 const NavLink = ({ to, label, active, onClick, isSection }) => {
   return (
@@ -79,8 +80,8 @@ const SocialIcon = ({ icon, link }) => {
         sx={{ 
           color: 'rgba(255,255,255,0.8)',
           '&:hover': {
-            color: '#4CC9F0',
-            backgroundColor: 'rgba(76, 201, 240, 0.1)'
+            background: 'rgba(255, 255, 255, 0.1)',
+            color: '#fff',
           }
         }}
       >
@@ -93,6 +94,8 @@ const SocialIcon = ({ icon, link }) => {
 export const PortfolioLayout = () => {
   const location = useLocation();
   const { username } = useParams();
+  const [portfolio, setPortfolio] = useState(null);
+  const [portfolioError, setPortfolioError] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery('(max-width:768px)');
@@ -100,6 +103,23 @@ export const PortfolioLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('Hero');
+
+  useEffect(() => {
+    if (!username) return;
+  
+    const fetchData = async () => {
+      setPortfolioError(null);
+      try {
+        const res = await api.get(`/${username}/portfolio`);
+        setPortfolio(res.data.portfolio);
+      } catch (err) {
+        setPortfolioError('Failed to load portfolio');
+        console.error("Portfolio error:", err);
+      }
+    };
+  
+    fetchData();
+  }, [username]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -173,7 +193,7 @@ useEffect(() => {
   }
 }, [location.pathname, targetSection, username]);
 
-  // Handle navigation items for both sections and pages
+
   const navItems = [
     { label: 'Home', id: 'Hero', isSection: true },
     { label: 'About', id: 'About', isSection: true },
@@ -181,11 +201,13 @@ useEffect(() => {
     { label: 'Contact', id: 'Contact', isSection: true },
   ];
 
+  const socials = portfolio?.owner?.socials ? JSON.parse(portfolio.owner.socials) : {};
+
   const socialIcons = [
-    { icon: <TwitterIcon fontSize="medium" />, link: 'https://twitter.com/' },
-    { icon: <LinkedInIcon fontSize="medium" />, link: 'https://linkedin.com/' },
-    { icon: <GitHubIcon fontSize="medium" />, link: 'https://github.com/' },
-    { icon: <InstagramIcon fontSize="medium" />, link: 'https://instagram.com/' }
+    { icon: <TwitterIcon fontSize="medium" />, link: socials.twitter },
+    { icon: <LinkedInIcon fontSize="medium" />, link: socials.linkedin },
+    { icon: <GitHubIcon fontSize="medium" />, link: socials.github },
+    { icon: <InstagramIcon fontSize="medium" />, link: socials.instagram  }
   ];
 
   const drawer = (
@@ -306,6 +328,7 @@ useEffect(() => {
                     background: isActive 
                     ? 'rgba(255, 255, 255, 0.15)'
                     : 'transparent',
+                    overflow: 'hidden',
                     '&:hover': { 
                       background: 'rgba(255, 255, 255, 0.1)',
                       color: '#fff',
@@ -345,8 +368,8 @@ useEffect(() => {
                     borderRadius: '10px',
                     backdropFilter: isActive ? 'blur(8px)' : 'none',
                     background: isActive 
-                      ? 'rgba(255, 255, 255, 0.15)'
-                      : 'transparent',
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'transparent',
                     overflow: 'hidden',
                     '&:hover': { 
                       background: 'rgba(255, 255, 255, 0.1)',
@@ -361,8 +384,8 @@ useEffect(() => {
                       transform: 'translateY(-50%)',
                       height: '60%',
                       width: '3px',
-                      background: 'rgba(255, 255, 255, 0.8)',
-                      borderRadius: '0 4px 4px 0'
+                      borderRadius: '0 4px 4px 0',
+                      background: 'rgba(255, 255, 255, 0.8)'
                     } : {}
                   }}
                 >

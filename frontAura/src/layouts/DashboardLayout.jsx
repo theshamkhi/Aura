@@ -400,13 +400,13 @@ const UserMenu = ({ anchorEl, handleMenuClose, user, logout }) => (
     }}
   >
     {user && (
-      <>
+      <div>
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="subtitle1" fontWeight={600}>{user.name || "User Name"}</Typography>
           <Typography variant="body2" color="text.secondary">{user.email || "user@example.com"}</Typography>
         </Box>
         <Divider />
-      </>
+      </div>
     )}
     <MenuItem onClick={handleMenuClose} sx={{ py: 1.5 }}>
       <ListItemIcon>
