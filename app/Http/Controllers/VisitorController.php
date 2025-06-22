@@ -29,7 +29,7 @@ class VisitorController extends Controller
                 ['session_id' => $validated['session_id']],
                 [
                     'portfolio_id' => $portfolio->id,
-                    'ip_address' => hash('sha256', $ip),
+                    'ip_address' => $ip,
                     'user_agent' => $request->userAgent(),
                     'referrer' => $request->header('referer'),
                     'country' => $geoData['country'],
