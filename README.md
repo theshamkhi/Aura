@@ -16,6 +16,7 @@
 ## 🌟 Features
 
 ### 🎨 Public Portfolio
+![image](https://github.com/user-attachments/assets/b202723c-5475-44cd-a3e6-967fb0f057e2)
 
 
 ### ⚙️ Admin Dashboard
